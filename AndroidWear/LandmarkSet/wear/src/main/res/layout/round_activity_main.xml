@@ -6,4 +6,39 @@
     <TextView android:id="@+id/text" android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:layout_centerHorizontal="true"
         android:layout_centerVertical="true" android:text="@string/hello_round" />
+
+    <android.support.wearable.view.CardScrollView
+        android:id="@+id/card_scroll_view"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
+
+        <android.support.wearable.view.CardFrame
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent">
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingLeft="5dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-light"
+                    android:text="@string/custom_card"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-light"
+                    android:text="@string/description"
+                    android:textColor="@color/black"
+                    android:textSize="14sp"/>
+            </LinearLayout>
+        </android.support.wearable.view.CardFrame>
+    </android.support.wearable.view.CardScrollView>
+
 </RelativeLayout>

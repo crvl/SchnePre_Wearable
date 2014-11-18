@@ -4,5 +4,8 @@
     <string name="app_name">LandmarkSet</string>
     <string name="hello_round">Hello Round World! Test Done!</string>
     <string name="hello_square">Hello Square World! Test Done!</string>
+    <string name="custom_card">Test Card</string>
+    <string name="description">This is a custom Card with a long text in it to show the Card</string>
+    <string name="button_name">Save GPS Position</string>
 
 </resources>
