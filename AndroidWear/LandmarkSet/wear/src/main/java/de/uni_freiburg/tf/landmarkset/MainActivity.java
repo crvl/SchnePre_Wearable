@@ -84,15 +84,7 @@ public class MainActivity extends Activity implements
 
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
 
-
-
     }
-    /*
-    public void onDisconnected(){
-        Log.e("MyWearActivity", "Disconnedted");
-        Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
-    }
-    */
 
 
 
@@ -130,8 +122,6 @@ public class MainActivity extends Activity implements
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
-
-        //mLocationClient = new LocationClient(this, this, this);
     }
 
     protected void onResume(){
@@ -142,17 +132,15 @@ public class MainActivity extends Activity implements
 
     protected void onPause(){
         super.onPause();
-       mGoogleApiClient.disconnect();
+        mGoogleApiClient.disconnect();
     }
 
     protected void onStart(){
         super.onStart();
-        //mLocationClient.connect();
     }
 
     protected void onStop(){
         super.onStop();
-        //mLocationClient.disconnect();
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -169,7 +157,8 @@ public class MainActivity extends Activity implements
                 .getLastLocation(mGoogleApiClient);
         Log.e("MyWearActivity", "\nGot location" +
                 "\nLatitude:  " + String.valueOf( location.getLatitude()) +
-                "\nLongitude:  " + String.valueOf( location.getLongitude()));
+                "\nLongitude:  " + String.valueOf( location.getLongitude()) +
+                "\nAccuracy:" + String.valueOf(location.getAccuracy()));
 
 
     }
