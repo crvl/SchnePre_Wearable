@@ -37,6 +37,7 @@ public class MainActivity extends Activity implements
     private LocationClient mLocationClient;
     private LocationRequest locationRequest;
     private boolean connected = false;
+    private KmlCreate kmlFile;
 
     private static final String TAG = "MyWearActivity";
 
@@ -122,6 +123,8 @@ public class MainActivity extends Activity implements
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+        kmlFile = new KmlCreate(this.getApplicationContext().getFilesDir());
+
     }
 
     protected void onResume(){
@@ -160,6 +163,7 @@ public class MainActivity extends Activity implements
                 "\nLongitude:  " + String.valueOf( location.getLongitude()) +
                 "\nAccuracy:" + String.valueOf(location.getAccuracy()));
 
+        kmlFile.addLocation(location);
 
     }
 }
