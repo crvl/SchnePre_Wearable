@@ -22,12 +22,14 @@ public class KmlCreate {
     private static final String defaultfilename = "savedLocations.kml";
     private static final String TAG = "KML Writer";
     private File kmlData;
+    private File parentFile;
 
 
 
 
     public KmlCreate(File dir, String filename){
         kmlData = new File(dir, filename);
+        parentFile = dir;
         if (!kmlData.exists()){
             try {
                 kmlData.createNewFile();
@@ -79,21 +81,50 @@ public class KmlCreate {
     private void initKmlData(PrintWriter writer) {
         writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         writer.println("<kml xmlns=\"http://www.opengis.net/kml/2.2\">");
+        writer.println("<Document>");
+        writer.println("</Document>");
         writer.println("</kml>");
     }
 
     public void addLocation(Location location){
 
         PrintWriter kmlWriter;
+        FileReader kmlReader;
+        BufferedReader kmlBuffer;
+        File tempKml;
 
+        tempKml = new File(parentFile, "tempFile.kml");
 
         String[] Placemark = createPlacemark(location);
+        String tempString;
 
         try {
-            kmlWriter = new PrintWriter(kmlData);
+            kmlWriter = new PrintWriter(tempKml);
+            kmlReader = new FileReader(kmlData);
+            kmlBuffer = new BufferedReader(kmlReader);
+
+            //write header to temp file
+            for (int i = 0; i < 3; i++) {
+                kmlWriter.println(kmlBuffer.readLine());
+            }
+            //write new placemark to temp file
             for(String s: Placemark){
                 kmlWriter.println(s);
             }
+            //write the rest of the orginal kml file to the temp file
+            while ((tempString = kmlBuffer.readLine()) != null) {
+                kmlWriter.println(tempString);
+            }
+
+            //overwrite kml data file with temp file
+            kmlWriter.flush();
+            kmlBuffer.close();
+            kmlReader.close();
+
+            if(!(tempKml.renameTo(kmlData))){
+                Log.e(TAG,"Rename temp file failed");
+            }
+
         }catch (IOException e){
             Log.e(TAG, "Write placemark failed");
         }
@@ -114,12 +145,13 @@ public class KmlCreate {
                 timeFormat.format(location.getTime()) + "</name>";
         //adding description to Placemark
         Placemark[2] = "<description>This Point was set by " +
-                "the Application Landmark Wear</description>";
+                "the Application Landmark Wear and has a accuracy of: " +
+                String.valueOf(location.getAccuracy()) + "m </description>";
         //adding a timestamp to Placemark
-        Placemark[3] = "<TimeStamp/>";
+        Placemark[3] = "<TimeStamp>";
         Placemark[4] = "<when>" + dateFormat.format(location.getTime()) + "T" +
                 timeFormat.format(location.getTime()) + "Z" + "</when>";
-        Placemark[5] = "</TimeStamp/>";
+        Placemark[5] = "</TimeStamp>";
         //adding the point to Placemark
         Placemark[6] = "<Point>";
         Placemark[7] = "<coordinates>" + String.valueOf(location.getLongitude()) + "," +
@@ -135,5 +167,9 @@ public class KmlCreate {
 
         return Placemark;
 
+    }
+
+    public File getFile(){
+        return kmlData;
     }
 }

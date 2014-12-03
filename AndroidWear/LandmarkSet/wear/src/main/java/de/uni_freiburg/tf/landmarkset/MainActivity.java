@@ -5,11 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
+import android.os.PowerManager;
 import android.support.wearable.view.CardScrollView;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,7 +28,11 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.FusedLocationProviderApi;
+import com.google.android.gms.wearable.Asset;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
+
+import java.io.IOException;
 
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -41,25 +48,6 @@ public class MainActivity extends Activity implements
 
     private static final String TAG = "MyWearActivity";
 
-    private boolean servicesConnected() {
-        // Check that Google Play services is available
-        int resultCode =
-                GooglePlayServicesUtil.
-                        isGooglePlayServicesAvailable(this);
-        // If Google Play services is available
-        if (ConnectionResult.SUCCESS == resultCode) {
-            // In debug mode, log the status
-            Log.d("Location Updates",
-                    "Google Play services is available.");
-            // Continue
-            return true;
-            // Google Play services was not available for some reason.
-            // resultCode holds the error code.
-        }else {
-            return false;
-        }
-    }
-
     @Override
     public void onLocationChanged(Location location){
 
@@ -70,23 +58,16 @@ public class MainActivity extends Activity implements
 
     public void onConnected(Bundle dataBundle){
         //Log.e("MyWearActivity", "Connected");
-        Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
         connected = true;
 
         locationRequest = LocationRequest.create();
-
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
         locationRequest.setInterval(2);
-
         locationRequest.setFastestInterval(2);
-
         locationRequest.setSmallestDisplacement(2);
-
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
-
     }
-
 
 
     public void onConnectionFailed(ConnectionResult connectionResult){
@@ -123,8 +104,10 @@ public class MainActivity extends Activity implements
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+
         kmlFile = new KmlCreate(this.getApplicationContext().getFilesDir());
 
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     protected void onResume(){
@@ -150,11 +133,9 @@ public class MainActivity extends Activity implements
         Log.e(TAG, "Activity Result:" + resultCode);
     }
 
-
-
-    public void showToast (View view){
+    public void savePosButton (View view){
         Log.e(TAG, "Save Position Button is pressed");
-        Toast.makeText(this, "Button Pressed", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Position Saved", Toast.LENGTH_SHORT).show();
 
         Location location = LocationServices.FusedLocationApi
                 .getLastLocation(mGoogleApiClient);
@@ -164,6 +145,19 @@ public class MainActivity extends Activity implements
                 "\nAccuracy:" + String.valueOf(location.getAccuracy()));
 
         kmlFile.addLocation(location);
+
+        try {
+            ParcelFileDescriptor kmlPFD = ParcelFileDescriptor.open(kmlFile.getFile(),
+                    ParcelFileDescriptor.MODE_READ_ONLY);
+            Asset kmlAsset = Asset.createFromFd(kmlPFD);
+            PutDataRequest request = PutDataRequest.create("/kmlFile");
+            request.putAsset("Positions", kmlAsset);
+            Wearable.DataApi.putDataItem(mGoogleApiClient, request);
+        }catch (IOException e){
+            Log.e(TAG, "File for asset not found");
+        }
+
+
 
     }
 }
