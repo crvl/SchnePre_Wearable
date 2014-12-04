@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+<Placemark>
+<name>Point fixed on 2014-12-04 10:06:02</name>
+<description>This Point was set by the Application Landmark Wear and has a accuracy of: 3.9m </description>
+<TimeStamp>
+<when>2014-12-04T10:06:02Z</when>
+</TimeStamp>
+<Point>
+<coordinates>7.8336678,48.0134839,306.0</coordinates>
+</Point>
+</Placemark>
+<Placemark>
+<name>Point fixed on 2014-12-04 10:05:29</name>
+<description>This Point was set by the Application Landmark Wear and has a accuracy of: 4.0m </description>
+<TimeStamp>
+<when>2014-12-04T10:05:29Z</when>
+</TimeStamp>
+<Point>
+<coordinates>7.8333981,48.0133351,301.0</coordinates>
+</Point>
+</Placemark>
+<Placemark>
+<name>Point fixed on 2014-12-04 10:04:52</name>
+<description>This Point was set by the Application Landmark Wear and has a accuracy of: 5.0m </description>
+<TimeStamp>
+<when>2014-12-04T10:04:52Z</when>
+</TimeStamp>
+<Point>
+<coordinates>7.8330496,48.0131404,296.0</coordinates>
+</Point>
+</Placemark>
+<Placemark>
+<name>Point fixed on 2014-12-04 10:03:35</name>
+<description>This Point was set by the Application Landmark Wear and has a accuracy of: 5.0m </description>
+<TimeStamp>
+<when>2014-12-04T10:03:35Z</when>
+</TimeStamp>
+<Point>
+<coordinates>7.8341699,48.0129115,296.0</coordinates>
+</Point>
+</Placemark>
+<Placemark>
+<name>Point fixed on 2014-12-04 10:02:53</name>
+<description>This Point was set by the Application Landmark Wear and has a accuracy of: 4.0m </description>
+<TimeStamp>
+<when>2014-12-04T10:02:53Z</when>
+</TimeStamp>
+<Point>
+<coordinates>7.8341721,48.0133089,296.0</coordinates>
+</Point>
+</Placemark>
+<Placemark>
+<name>Point fixed on 2014-12-04 10:02:13</name>
+<description>This Point was set by the Application Landmark Wear and has a accuracy of: 5.0m </description>
+<TimeStamp>
+<when>2014-12-04T10:02:13Z</when>
+</TimeStamp>
+<Point>
+<coordinates>7.83391,48.013545,299.0</coordinates>
+</Point>
+</Placemark>
+<Placemark>
+<name>Point fixed on 2014-12-04 10:01:49</name>
+<description>This Point was set by the Application Landmark Wear and has a accuracy of: 20.661m </description>
+<TimeStamp>
+<when>2014-12-04T10:01:49Z</when>
+</TimeStamp>
+<Point>
+<coordinates>7.8338264,48.0133686,0.0</coordinates>
+</Point>
+</Placemark>
+</Document>
+</kml>

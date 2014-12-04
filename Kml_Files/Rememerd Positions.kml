@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>Rememerd Positions.kml</name>
+	<Style id="s_ylw-pushpin_hl">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<StyleMap id="m_ylw-pushpin">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#s_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#s_ylw-pushpin_hl</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="s_ylw-pushpin">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Folder>
+		<name>Rememerd Positions</name>
+		<open>1</open>
+		<Placemark>
+			<name>Correct Point fixed on 2014-12-04 10:02:13</name>
+			<LookAt>
+				<longitude>7.834092179459969</longitude>
+				<latitude>48.01352245152746</latitude>
+				<altitude>0</altitude>
+				<heading>-95.17020444355624</heading>
+				<tilt>26.87301396409813</tilt>
+				<range>71.85766250147223</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>7.83404897754826,48.0135185844463,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Correct Point fixed on 2014-12-04 10:01:49</name>
+			<LookAt>
+				<longitude>7.833884470745161</longitude>
+				<latitude>48.01351471824376</latitude>
+				<altitude>0</altitude>
+				<heading>-92.87443318276434</heading>
+				<tilt>0.5299783173690241</tilt>
+				<range>74.06098497938861</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>7.833691052572003,48.01343992514287,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Correct Point fixed on 2014-12-04 10:06:02</name>
+			<LookAt>
+				<longitude>7.833884470745161</longitude>
+				<latitude>48.01351471824376</latitude>
+				<altitude>0</altitude>
+				<heading>-92.87443318276434</heading>
+				<tilt>0.5299783173690241</tilt>
+				<range>74.06098497938861</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>7.833668962562781,48.01346100913804,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Correct Point fixed on 2014-12-04 10:02:53</name>
+			<LookAt>
+				<longitude>7.834125907070793</longitude>
+				<latitude>48.01338097038763</latitude>
+				<altitude>0</altitude>
+				<heading>-92.87425371940552</heading>
+				<tilt>0.529978265416081</tilt>
+				<range>73.43584887644806</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>7.834225261762087,48.01329078611268,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Correct Point fixed on 2014-12-04 10:03:35</name>
+			<LookAt>
+				<longitude>7.834135220248781</longitude>
+				<latitude>48.01310982149623</latitude>
+				<altitude>0</altitude>
+				<heading>-92.87424679848043</heading>
+				<tilt>0.5299782631612648</tilt>
+				<range>73.40869107518907</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>7.834173636122843,48.01289170254115,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Correct Point fixed on 2014-12-04 10:04:52</name>
+			<LookAt>
+				<longitude>7.833088465327081</longitude>
+				<latitude>48.01321082055657</latitude>
+				<altitude>0</altitude>
+				<heading>-92.87502484709655</heading>
+				<tilt>0.5299783741803403</tilt>
+				<range>74.74483722421978</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>7.832967069410661,48.01302424593074,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>Correct Point fixed on 2014-12-04 10:05:29</name>
+			<LookAt>
+				<longitude>7.833283332148099</longitude>
+				<latitude>48.01337785028323</latitude>
+				<altitude>0</altitude>
+				<heading>-92.87488000121965</heading>
+				<tilt>0.5299783901793513</tilt>
+				<range>74.93747114669236</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>7.833335838621329,48.01334612750473,0</coordinates>
+			</Point>
+		</Placemark>
+	</Folder>
+</Document>
+</kml>

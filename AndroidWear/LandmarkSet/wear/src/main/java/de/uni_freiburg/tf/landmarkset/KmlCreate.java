@@ -28,6 +28,7 @@ public class KmlCreate {
 
 
     public KmlCreate(File dir, String filename){
+
         kmlData = new File(dir, filename);
         parentFile = dir;
         if (!kmlData.exists()){
@@ -38,6 +39,8 @@ public class KmlCreate {
             }
 
         }
+        Log.e(TAG,"The opened File has the size of" + String.valueOf(kmlData.length()) + "Bytes");
+
         initKmlFile();
 
 
@@ -55,19 +58,37 @@ public class KmlCreate {
     */
 
     public void initKmlFile(){
+        File tempKml;
         PrintWriter kmlWriter;
         FileReader kmlReader;
         BufferedReader kmlBuffer;
+        String line;
+
+        tempKml = new File(parentFile, "tempKml.kml");
+
 
         try {
-            kmlWriter = new PrintWriter(kmlData);
+            tempKml.createNewFile();
+
+            kmlWriter = new PrintWriter(tempKml);
             kmlReader = new FileReader(kmlData);
             kmlBuffer = new BufferedReader(kmlReader);
+
             //if the file is empty write the skeleton of a kml file
-            if(kmlBuffer.readLine() == null){
+            if((line = kmlBuffer.readLine()) == null){
                 initKmlData(kmlWriter);
+                kmlBuffer.close();
+                kmlReader.close();
+                kmlWriter.flush();
+                kmlWriter.close();
+                if(!tempKml.renameTo(kmlData)){
+                    Log.e(TAG,"rename file in init failed");
+                }
+                return;
             }
+
             kmlBuffer.close();
+            kmlReader.close();
             kmlWriter.flush();
             kmlWriter.close();
         }
