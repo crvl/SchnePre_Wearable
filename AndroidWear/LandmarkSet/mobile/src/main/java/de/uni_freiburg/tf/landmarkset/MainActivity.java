@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -42,6 +43,14 @@ public class MainActivity extends ActionBarActivity implements
 
     private final String TAG = "Landmark mobile App";
 
+
+    public void delete_data(View view){
+        Log.e(TAG,"Delete Data Button pressed");
+    }
+
+    public void sync_data(View view){
+        Log.e(TAG, "Sync Data Button pressed");
+    }
 
     public void onConnected(Bundle dataBundle){
         Wearable.DataApi.addListener(wearGoogleApiClient, this);
