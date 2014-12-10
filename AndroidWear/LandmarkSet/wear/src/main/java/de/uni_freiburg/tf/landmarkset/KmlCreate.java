@@ -107,6 +107,17 @@ public class KmlCreate {
         writer.println("</kml>");
     }
 
+    public void resetKmlFile(){
+        kmlData.delete();
+
+        try {
+            kmlData.createNewFile();
+        }catch(IOException ex){
+            Log.e(TAG,"Can not be recreate file");
+        }
+        initKmlFile();
+    }
+
     public void addLocation(Location location){
 
         PrintWriter kmlWriter;

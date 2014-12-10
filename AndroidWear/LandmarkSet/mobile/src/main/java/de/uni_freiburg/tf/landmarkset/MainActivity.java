@@ -1,5 +1,6 @@
 package de.uni_freiburg.tf.landmarkset;
 
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.support.v7.app.ActionBarActivity;
@@ -18,7 +19,11 @@ import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItemAsset;
 import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
+import com.google.android.gms.wearable.WearableListenerService;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,7 +32,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 
 public class MainActivity extends ActionBarActivity implements
@@ -42,18 +51,40 @@ public class MainActivity extends ActionBarActivity implements
     private GoogleApiClient wearGoogleApiClient;
 
     private final String TAG = "Landmark mobile App";
-
+    private final String deletePath = "/deleteFile";
+    private final String syncPath = "/syncFile";
+    private String wearNode;
 
     public void delete_data(View view){
+
         Log.e(TAG,"Delete Data Button pressed");
+        sendMessage(deletePath);
+
     }
 
     public void sync_data(View view){
+
         Log.e(TAG, "Sync Data Button pressed");
+        sendMessage(syncPath);
+    }
+
+    private void sendMessage(final String path){
+        new Thread(new Runnable(){
+            public void run(){
+                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.
+                        getConnectedNodes(wearGoogleApiClient).await();
+
+                for(Node node : nodes.getNodes()){
+                    MessageApi.SendMessageResult result = Wearable.MessageApi.
+                            sendMessage(wearGoogleApiClient,node.getId(),path, null).await();
+                }
+            }
+        }).start();
     }
 
     public void onConnected(Bundle dataBundle){
         Wearable.DataApi.addListener(wearGoogleApiClient, this);
+
     }
 
     public void onConnectionSuspended(int i){
@@ -159,6 +190,7 @@ public class MainActivity extends ActionBarActivity implements
                 .addOnConnectionFailedListener(this)
                 .addApi(Wearable.API)
                 .build();
+
     }
 
     protected void onPause(){
@@ -170,6 +202,7 @@ public class MainActivity extends ActionBarActivity implements
     protected void onResume(){
         super.onResume();
         wearGoogleApiClient.connect();
+
     }
 
 
@@ -194,4 +227,8 @@ public class MainActivity extends ActionBarActivity implements
 
         return super.onOptionsItemSelected(item);
     }
+
+
 }
+
+

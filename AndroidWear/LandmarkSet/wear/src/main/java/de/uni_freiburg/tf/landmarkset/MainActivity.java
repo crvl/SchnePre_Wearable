@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
 import android.support.wearable.view.CardScrollView;
@@ -29,6 +30,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.wearable.Asset;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
@@ -37,7 +40,8 @@ import java.io.IOException;
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener,
+        MessageApi.MessageListener {
 
     private TextView mTextView;
     private GoogleApiClient mGoogleApiClient;
@@ -45,6 +49,8 @@ public class MainActivity extends Activity implements
     private LocationRequest locationRequest;
     private boolean connected = false;
     private KmlCreate kmlFile;
+    private final String deletePath = "/deleteFile";
+    private final String syncPath = "/syncFile";
 
     private static final String TAG = "MyWearActivity";
 
@@ -54,6 +60,20 @@ public class MainActivity extends Activity implements
         // Display the latitude and longitude in the UI
         Log.e(TAG,"Latitude:  " + String.valueOf( location.getLatitude()) +
                 "\nLongitude:  " + String.valueOf( location.getLongitude()));
+    }
+
+    public void onMessageReceived(MessageEvent messageEvent){
+        if(messageEvent.getPath().equals(deletePath)){
+            Log.e(TAG,"Delete Message Received");
+            kmlFile.resetKmlFile();
+            syncWithMobil();
+
+        }
+        if(messageEvent.getPath().equals(syncPath)){
+            Log.e(TAG,"Sync Message Received");
+            kmlFile.initKmlFile();
+            syncWithMobil();
+        }
     }
 
     public void onConnected(Bundle dataBundle){
@@ -103,6 +123,7 @@ public class MainActivity extends Activity implements
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
+
                 .build();
 
         kmlFile = new KmlCreate(this.getApplicationContext().getFilesDir());
@@ -114,11 +135,13 @@ public class MainActivity extends Activity implements
         super.onResume();
         Log.e(TAG, "OnResume");
         mGoogleApiClient.connect();
+        Wearable.MessageApi.addListener(mGoogleApiClient,this);
     }
 
     protected void onPause(){
         super.onPause();
         mGoogleApiClient.disconnect();
+        Wearable.MessageApi.removeListener(mGoogleApiClient,this);
     }
 
     protected void onStart(){
@@ -146,6 +169,13 @@ public class MainActivity extends Activity implements
 
         kmlFile.addLocation(location);
 
+        //syncWithMobil();
+
+
+
+    }
+
+    private void syncWithMobil(){
         try {
             ParcelFileDescriptor kmlPFD = ParcelFileDescriptor.open(kmlFile.getFile(),
                     ParcelFileDescriptor.MODE_READ_ONLY);
@@ -156,8 +186,5 @@ public class MainActivity extends Activity implements
         }catch (IOException e){
             Log.e(TAG, "File for asset not found");
         }
-
-
-
     }
 }
