@@ -1,19 +1,26 @@
 package de.uni_freiburg.tf.landmarkset;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
+import android.support.wearable.view.CardFragment;
 import android.support.wearable.view.CardScrollView;
+import android.support.wearable.view.CircledImageView;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,27 +39,32 @@ import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
+import com.google.android.gms.wearable.WearableListenerService;
 
 import java.io.IOException;
 
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener,
-        MessageApi.MessageListener {
+        LocationListener{
 
-    private TextView mTextView;
     private GoogleApiClient mGoogleApiClient;
-    private LocationClient mLocationClient;
     private LocationRequest locationRequest;
-    private boolean connected = false;
-    private KmlCreate kmlFile;
-    private final String deletePath = "/deleteFile";
-    private final String syncPath = "/syncFile";
+    private boolean apiConnected;
 
-    private static final String TAG = "MyWearActivity";
+    private KmlCreate kmlFile;
+    private ConnectionManager conManager;
+    /*
+    private FragmentManager fragmentManager;
+    private FragmentTransaction fragmentTransaction;
+    private CardFragment cardFragment;
+    */
+
+    private final String TAG = "MyWearActivity";
 
     @Override
     public void onLocationChanged(Location location){
@@ -62,24 +74,9 @@ public class MainActivity extends Activity implements
                 "\nLongitude:  " + String.valueOf( location.getLongitude()));
     }
 
-    public void onMessageReceived(MessageEvent messageEvent){
-        if(messageEvent.getPath().equals(deletePath)){
-            Log.e(TAG,"Delete Message Received");
-            kmlFile.resetKmlFile();
-            syncWithMobil();
-
-        }
-        if(messageEvent.getPath().equals(syncPath)){
-            Log.e(TAG,"Sync Message Received");
-            kmlFile.initKmlFile();
-            syncWithMobil();
-        }
-    }
 
     public void onConnected(Bundle dataBundle){
-        //Log.e("MyWearActivity", "Connected");
-        //Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
-        connected = true;
+        apiConnected = true;
 
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -92,12 +89,12 @@ public class MainActivity extends Activity implements
 
     public void onConnectionFailed(ConnectionResult connectionResult){
         Log.e(TAG, "Connection Faild");
-        connected = false;
+        apiConnected = false;
     }
 
     public void onConnectionSuspended(int cause){
         Log.e(TAG, "Connection Suspended");
-        connected = false;
+        apiConnected = false;
     }
 
     @Override
@@ -109,15 +106,19 @@ public class MainActivity extends Activity implements
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
-                //mTextView = (TextView) stub.findViewById(R.id.text);
-
-                //CardScrollView cardScrollView = (CardScrollView) findViewById(R.id.card_scroll_view);
-                //cardScrollView.setCardGravity(Gravity.BOTTOM);
+                //buttonGPS = (CircledImageView) stub.findViewById(R.id.savePosition);
             }
         });
 
-        //Log.e("MyWearActivity", "Play Service available:" + servicesConnected());
-
+        /*
+        fragmentManager = getFragmentManager();
+        fragmentTransaction = fragmentManager.beginTransaction();
+        cardFragment = CardFragment.create("No GPS", "The watch has no connection " +
+                "to the mobile phone and no GPS receiver!");
+        fragmentTransaction.add(R.id.watch_view_stub, cardFragment);
+        fragmentTransaction.commit();
+        fragmentTransaction.detach(cardFragment);
+        */
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addApi(Wearable.API)
@@ -128,6 +129,8 @@ public class MainActivity extends Activity implements
 
         kmlFile = new KmlCreate(this.getApplicationContext().getFilesDir());
 
+        conManager = new ConnectionManager(mGoogleApiClient, kmlFile);
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
@@ -135,13 +138,12 @@ public class MainActivity extends Activity implements
         super.onResume();
         Log.e(TAG, "OnResume");
         mGoogleApiClient.connect();
-        Wearable.MessageApi.addListener(mGoogleApiClient,this);
+
     }
 
     protected void onPause(){
         super.onPause();
         mGoogleApiClient.disconnect();
-        Wearable.MessageApi.removeListener(mGoogleApiClient,this);
     }
 
     protected void onStart(){
@@ -152,12 +154,20 @@ public class MainActivity extends Activity implements
         super.onStop();
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
-        Log.e(TAG, "Activity Result:" + resultCode);
-    }
-
     public void savePosButton (View view){
         Log.e(TAG, "Save Position Button is pressed");
+
+        if(!conManager.getMobilConnection()){
+            Log.e(TAG, "Mobil is not connected");
+
+            if(!hasGPS()) {
+                Log.e(TAG, "The device can no get its Position alone" +
+                        " because it has no GPS receiver");
+                //start new activity here to show the message
+                return;
+            }
+        }
+
         Toast.makeText(this, "Position Saved", Toast.LENGTH_SHORT).show();
 
         Location location = LocationServices.FusedLocationApi
@@ -175,16 +185,9 @@ public class MainActivity extends Activity implements
 
     }
 
-    private void syncWithMobil(){
-        try {
-            ParcelFileDescriptor kmlPFD = ParcelFileDescriptor.open(kmlFile.getFile(),
-                    ParcelFileDescriptor.MODE_READ_ONLY);
-            Asset kmlAsset = Asset.createFromFd(kmlPFD);
-            PutDataRequest request = PutDataRequest.create("/kmlFile");
-            request.putAsset("Positions", kmlAsset);
-            Wearable.DataApi.putDataItem(mGoogleApiClient, request);
-        }catch (IOException e){
-            Log.e(TAG, "File for asset not found");
-        }
+    public boolean hasGPS(){
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
     }
+
 }
+
