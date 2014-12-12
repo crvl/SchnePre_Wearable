@@ -58,11 +58,12 @@ public class MainActivity extends Activity implements
 
     private KmlCreate kmlFile;
     private ConnectionManager conManager;
-    /*
+
     private FragmentManager fragmentManager;
     private FragmentTransaction fragmentTransaction;
     private CardFragment cardFragment;
-    */
+
+    private CircledImageView saveGpsButton;
 
     private final String TAG = "MyWearActivity";
 
@@ -72,6 +73,22 @@ public class MainActivity extends Activity implements
         // Display the latitude and longitude in the UI
         Log.e(TAG,"Latitude:  " + String.valueOf( location.getLatitude()) +
                 "\nLongitude:  " + String.valueOf( location.getLongitude()));
+    }
+
+    public void onConnectionChange(boolean connected){
+        if(!hasGPS()) {
+            if (connected) {
+                fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.detach(cardFragment);
+                fragmentTransaction.commit();
+                saveGpsButton.setClickable(true);
+            } else {
+                fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.attach(cardFragment);
+                fragmentTransaction.commit();
+                saveGpsButton.setClickable(false);
+            }
+        }
     }
 
 
@@ -106,19 +123,20 @@ public class MainActivity extends Activity implements
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
-                //buttonGPS = (CircledImageView) stub.findViewById(R.id.savePosition);
+                saveGpsButton = (CircledImageView) stub.findViewById(R.id.savePosition);
             }
         });
 
-        /*
+        //create the card to show that no location service is available and hide it
         fragmentManager = getFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
         cardFragment = CardFragment.create("No GPS", "The watch has no connection " +
                 "to the mobile phone and no GPS receiver!");
         fragmentTransaction.add(R.id.watch_view_stub, cardFragment);
-        fragmentTransaction.commit();
         fragmentTransaction.detach(cardFragment);
-        */
+        fragmentTransaction.commit();
+
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addApi(Wearable.API)
@@ -129,7 +147,7 @@ public class MainActivity extends Activity implements
 
         kmlFile = new KmlCreate(this.getApplicationContext().getFilesDir());
 
-        conManager = new ConnectionManager(mGoogleApiClient, kmlFile);
+        conManager = new ConnectionManager(mGoogleApiClient, kmlFile, this);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
@@ -163,7 +181,13 @@ public class MainActivity extends Activity implements
             if(!hasGPS()) {
                 Log.e(TAG, "The device can no get its Position alone" +
                         " because it has no GPS receiver");
-                //start new activity here to show the message
+
+                fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.attach(cardFragment);
+                fragmentTransaction.commit();
+
+                saveGpsButton.setClickable(false);
+
                 return;
             }
         }

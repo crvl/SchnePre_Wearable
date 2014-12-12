@@ -1,5 +1,7 @@
 package de.uni_freiburg.tf.landmarkset;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
@@ -20,7 +22,7 @@ import java.io.IOException;
  */
 public class ConnectionManager extends WearableListenerService {
 
-    private boolean mobileConnected;
+
 
     private final String TAG = "Connection Manager";
     private final String deletePath = "/deleteFile";
@@ -31,10 +33,13 @@ public class ConnectionManager extends WearableListenerService {
     //have to be static, otherwise the kmlFile and mGoogleApiClient will be null in a onMessageReceive
     private static GoogleApiClient mGoogleApiClient;
     private static KmlCreate kmlFile;
+    private static boolean mobileConnected;
+    private static MainActivity owner;
 
-    public ConnectionManager(GoogleApiClient googleApiClient, KmlCreate kmlCreate){
+    public ConnectionManager(GoogleApiClient googleApiClient, KmlCreate kmlCreate, MainActivity caller){
         mGoogleApiClient = googleApiClient;
         kmlFile = kmlCreate;
+        owner = caller;
     }
 
     public ConnectionManager(){}
@@ -51,12 +56,16 @@ public class ConnectionManager extends WearableListenerService {
         super.onPeerDisconnected(peer);
         Log.e(TAG, "Mobile disconnected from watch");
         mobileConnected = false;
+
+        owner.onConnectionChange(false);
     }
 
     public void onPeerConnected(Node peer){
         super.onPeerConnected(peer);
         Log.e(TAG, "Mobile connected to watch");
         mobileConnected = true;
+
+        owner.onConnectionChange(true);
     }
 
     public void onMessageReceived(MessageEvent messageEvent){
