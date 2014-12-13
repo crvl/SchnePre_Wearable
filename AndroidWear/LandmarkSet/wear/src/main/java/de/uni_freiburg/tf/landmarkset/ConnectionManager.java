@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.Asset;
+import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
@@ -52,6 +53,8 @@ public class ConnectionManager extends WearableListenerService {
         kmlFile = kmlCreate;
     }
 
+
+
     public void onPeerDisconnected(Node peer){
         super.onPeerDisconnected(peer);
         Log.e(TAG, "Mobile disconnected from watch");
@@ -70,6 +73,12 @@ public class ConnectionManager extends WearableListenerService {
 
     public void onMessageReceived(MessageEvent messageEvent){
         super.onMessageReceived(messageEvent);
+
+        if(!owner.isRunning()){
+            mGoogleApiClient.connect();
+            while (!owner.isApiConnected());
+        }
+
         if(messageEvent.getPath().equals(deletePath)){
             Log.e(TAG,"Delete Message Received");
             kmlFile.resetKmlFile();
@@ -79,6 +88,10 @@ public class ConnectionManager extends WearableListenerService {
         if(messageEvent.getPath().equals(syncPath)){
             Log.e(TAG,"Sync Message Received");
             syncWithMobil();
+        }
+
+        if(!owner.isRunning()){
+            mGoogleApiClient.disconnect();
         }
     }
 
@@ -133,5 +146,18 @@ public class ConnectionManager extends WearableListenerService {
         return mobileConnected;
     }
 
+    public void sendMessage(final String path){
+        new Thread(new Runnable(){
+            public void run(){
+                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.
+                        getConnectedNodes(mGoogleApiClient).await();
+
+                for(Node node : nodes.getNodes()){
+                    MessageApi.SendMessageResult result = Wearable.MessageApi.
+                            sendMessage(mGoogleApiClient,node.getId(),path, null).await();
+                }
+            }
+        }).start();
+    }
 
 }

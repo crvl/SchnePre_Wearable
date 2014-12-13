@@ -1,5 +1,6 @@
 package de.uni_freiburg.tf.landmarkset;
 
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
@@ -20,6 +21,7 @@ import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItemAsset;
 import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
@@ -42,7 +44,8 @@ import java.util.concurrent.TimeoutException;
 public class MainActivity extends ActionBarActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        DataApi.DataListener
+        DataApi.DataListener,
+        MessageApi.MessageListener
 
 
 {
@@ -50,9 +53,12 @@ public class MainActivity extends ActionBarActivity implements
 
     private GoogleApiClient wearGoogleApiClient;
 
+    private Activity activity;
+
     private final String TAG = "Landmark mobile App";
     private final String deletePath = "/deleteFile";
     private final String syncPath = "/syncFile";
+    private final String newDataPath  = "/newData";
     private String wearNode;
 
     public void delete_data(View view){
@@ -66,6 +72,12 @@ public class MainActivity extends ActionBarActivity implements
 
         Log.e(TAG, "Sync Data Button pressed");
         sendMessage(syncPath);
+    }
+
+    public void onMessageReceived(MessageEvent messageEvent){
+        if(messageEvent.getPath().equals(newDataPath)){
+            sendMessage(syncPath);
+        }
     }
 
     private void sendMessage(final String path){
@@ -84,6 +96,7 @@ public class MainActivity extends ActionBarActivity implements
 
     public void onConnected(Bundle dataBundle){
         Wearable.DataApi.addListener(wearGoogleApiClient, this);
+        Wearable.MessageApi.addListener(wearGoogleApiClient, this);
 
     }
 
@@ -104,6 +117,12 @@ public class MainActivity extends ActionBarActivity implements
                 Log.e(TAG,"Events: " + event.getDataItem().getAssets().get("Positions"));
                 DataItemAsset dia = event.getDataItem().getAssets().get("Positions");
                 loadKmlFileFromAsset(dia);
+
+                activity.runOnUiThread(new Runnable() {
+                    public void run(){
+                        Toast.makeText(activity, "New Data received", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         }
     }
@@ -185,6 +204,8 @@ public class MainActivity extends ActionBarActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        activity = this;
+
         wearGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -196,6 +217,7 @@ public class MainActivity extends ActionBarActivity implements
     protected void onPause(){
         super.onPause();
         Wearable.DataApi.removeListener(wearGoogleApiClient, this);
+        Wearable.MessageApi.removeListener(wearGoogleApiClient, this);
         wearGoogleApiClient.disconnect();
     }
 

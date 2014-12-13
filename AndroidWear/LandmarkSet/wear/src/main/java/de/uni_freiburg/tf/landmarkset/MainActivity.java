@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
+import android.os.Vibrator;
 import android.support.wearable.view.CardFragment;
 import android.support.wearable.view.CardScrollView;
 import android.support.wearable.view.CircledImageView;
@@ -55,6 +56,7 @@ public class MainActivity extends Activity implements
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest locationRequest;
     private boolean apiConnected;
+    private boolean running;
 
     private KmlCreate kmlFile;
     private ConnectionManager conManager;
@@ -66,6 +68,7 @@ public class MainActivity extends Activity implements
     private CircledImageView saveGpsButton;
 
     private final String TAG = "MyWearActivity";
+    private final String newData = "/newData";
 
     @Override
     public void onLocationChanged(Location location){
@@ -154,26 +157,33 @@ public class MainActivity extends Activity implements
 
     protected void onResume(){
         super.onResume();
-        Log.e(TAG, "OnResume");
         mGoogleApiClient.connect();
-
+        running = true;
     }
 
     protected void onPause(){
         super.onPause();
         mGoogleApiClient.disconnect();
+        running = false;
     }
 
     protected void onStart(){
         super.onStart();
+
     }
 
     protected void onStop(){
         super.onStop();
     }
 
+    protected void onDestroy(){
+        super.onDestroy();
+    }
+
     public void savePosButton (View view){
         Log.e(TAG, "Save Position Button is pressed");
+
+        Vibrator vibe = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 
         if(!conManager.getMobilConnection()){
             Log.e(TAG, "Mobil is not connected");
@@ -203,6 +213,12 @@ public class MainActivity extends Activity implements
 
         kmlFile.addLocation(location);
 
+        if(vibe.hasVibrator()){
+            vibe.vibrate(250);
+        }
+
+        conManager.sendMessage(newData);
+
         //syncWithMobil();
 
 
@@ -213,5 +229,12 @@ public class MainActivity extends Activity implements
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
     }
 
+    public boolean isApiConnected(){
+        return apiConnected;
+    }
+
+    public boolean isRunning(){
+        return running;
+    }
 }
 
