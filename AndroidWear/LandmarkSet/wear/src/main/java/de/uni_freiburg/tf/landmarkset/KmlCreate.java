@@ -103,6 +103,12 @@ public class KmlCreate {
         writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         writer.println("<kml xmlns=\"http://www.opengis.net/kml/2.2\">");
         writer.println("<Document>");
+        writer.println("<Placemark>");
+        writer.println("<LineString>");
+        writer.println("<coordinates>");
+        writer.println("</coordinates>");
+        writer.println("</LineString>");
+        writer.println("</Placemark>");
         writer.println("</Document>");
         writer.println("</kml>");
     }
@@ -141,6 +147,9 @@ public class KmlCreate {
             }
             //write new placemark to temp file
             for(String s: Placemark){
+                if(s == null){
+                    break;
+                }
                 kmlWriter.println(s);
             }
             //write the rest of the orginal kml file to the temp file
@@ -160,14 +169,56 @@ public class KmlCreate {
         }catch (IOException e){
             Log.e(TAG, "Write placemark failed");
         }
+    }
 
+    public void addWayPoint(Location location){
+        PrintWriter kmlWriter;
+        FileReader kmlReader;
+        BufferedReader kmlBuffer;
+        File tempKml;
 
+        tempKml = new File(parentFile, "tempFile.kml");
 
+        String tempString = "";
+        String lastTmpString = "";
 
+        try {
+            kmlWriter = new PrintWriter(tempKml);
+            kmlReader = new FileReader(kmlData);
+            kmlBuffer = new BufferedReader(kmlReader);
+
+            while (!((tempString = kmlBuffer.readLine()).equals("<coordinates>")
+                    && lastTmpString.equals("<LineString>"))){
+                kmlWriter.println(tempString);
+                lastTmpString = tempString;
+            }
+
+            kmlWriter.println(tempString);
+            kmlWriter.println(String.valueOf(location.getLongitude()) + ","
+                    + String.valueOf(location.getLatitude()) + ","
+                    + String.valueOf(location.getAltitude()));
+
+            //write the rest of the orginal kml file to the temp file
+            while ((tempString = kmlBuffer.readLine()) != null) {
+                kmlWriter.println(tempString);
+            }
+
+            //overwrite kml data file with temp file
+            kmlWriter.flush();
+            kmlBuffer.close();
+            kmlReader.close();
+
+            if(!(tempKml.renameTo(kmlData))){
+                Log.e(TAG,"Rename temp file failed");
+            }
+
+        }catch (IOException e){
+            Log.e(TAG, "Write way point failed");
+        }
     }
 
     private String [] createPlacemark (Location location){
-        String[] Placemark = new String[10];
+        String[] Placemark = new String[20];
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -185,14 +236,34 @@ public class KmlCreate {
                 timeFormat.format(location.getTime()) + "Z" + "</when>";
         Placemark[5] = "</TimeStamp>";
         //adding the point to Placemark
-        Placemark[6] = "<Point>";
-        Placemark[7] = "<coordinates>" + String.valueOf(location.getLongitude()) + "," +
-                String.valueOf(location.getLatitude()) + "," +
-                String.valueOf(location.getAltitude()) +
-                "</coordinates>";
-        Placemark[8] = "</Point>";
-        //end Placemark
-        Placemark[9] = "</Placemark>";
+
+        if(!location.hasBearing()) {
+            Placemark[6] = "<Point>";
+            Placemark[7] = "<coordinates>" + String.valueOf(location.getLongitude()) + "," +
+                    String.valueOf(location.getLatitude()) + "," +
+                    String.valueOf(location.getAltitude()) +
+                    "</coordinates>";
+            Placemark[8] = "</Point>";
+            //end Placemark
+            Placemark[9] = "</Placemark>";
+        }else{
+            Placemark[6] = "<LookAt>";
+            Placemark[7] = "<longitude>" + String.valueOf(location.getLongitude()) + "</longitude>";
+            Placemark[8] = "<latitude>" + String.valueOf(location.getLatitude()) + "</latitude>";
+            Placemark[9] = "<altitude>" + String.valueOf(location.getAltitude()) + "</altitude>";
+            Placemark[10] = "<range>100</range>";
+            Placemark[11] = "<tilt>0</tilt>";
+            Placemark[12] = "<heading>" + String.valueOf(location.getBearing()) + "</heading>";
+            Placemark[13] = "</LookAt>";
+            Placemark[14] = "<Point>";
+            Placemark[15] = "<coordinates>" + String.valueOf(location.getLongitude()) + "," +
+                    String.valueOf(location.getLatitude()) + "," +
+                    String.valueOf(location.getAltitude()) +
+                    "</coordinates>";
+            Placemark[16] = "</Point>";
+            //end Placemark
+            Placemark[17] = "</Placemark>";
+        }
 
         Log.e(TAG, Arrays.toString(Placemark));
 

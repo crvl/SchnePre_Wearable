@@ -6,6 +6,10 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -51,15 +55,25 @@ import java.io.IOException;
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener{
+        LocationListener,
+        SensorEventListener{
 
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest locationRequest;
+    private SensorManager mSensorManager;
+    private Sensor gravitySensor;
+    private Sensor geoMagneticSensor;
     private boolean apiConnected;
     private boolean running;
 
+    private boolean hasMagnetometer;
+    private boolean hasAcceleration;
+
     private KmlCreate kmlFile;
     private ConnectionManager conManager;
+
+    private float[] gravity;
+    private float[] geomagnetic;
 
     private FragmentManager fragmentManager;
     private FragmentTransaction fragmentTransaction;
@@ -76,6 +90,8 @@ public class MainActivity extends Activity implements
         // Display the latitude and longitude in the UI
         Log.e(TAG,"Latitude:  " + String.valueOf( location.getLatitude()) +
                 "\nLongitude:  " + String.valueOf( location.getLongitude()));
+
+        //kmlFile.addWayPoint(location);
     }
 
     public void onConnectionChange(boolean connected){
@@ -90,6 +106,23 @@ public class MainActivity extends Activity implements
                 fragmentTransaction.attach(cardFragment);
                 fragmentTransaction.commit();
                 saveGpsButton.setClickable(false);
+            }
+        }
+    }
+
+    public final void onAccuracyChanged(Sensor sensor, int accuracy){
+
+    }
+
+    public final void onSensorChanged(SensorEvent event){
+        if(event.sensor == gravitySensor){
+            if(event.accuracy != SensorManager.SENSOR_STATUS_UNRELIABLE) {
+                gravity = event.values.clone();
+            }
+        }
+        if(event.sensor == geoMagneticSensor){
+            if(event.accuracy != SensorManager.SENSOR_STATUS_UNRELIABLE) {
+                geomagnetic = event.values.clone();
             }
         }
     }
@@ -118,7 +151,7 @@ public class MainActivity extends Activity implements
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -148,42 +181,73 @@ public class MainActivity extends Activity implements
 
                 .build();
 
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        geoMagneticSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        gravitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+
+        if(geoMagneticSensor == null){hasMagnetometer = false;}
+        else{hasMagnetometer = true;}
+
+        if(gravitySensor == null){hasAcceleration = false;}
+        else {hasAcceleration = true;}
+
+
         kmlFile = new KmlCreate(this.getApplicationContext().getFilesDir());
 
         conManager = new ConnectionManager(mGoogleApiClient, kmlFile, this);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        geomagnetic = new float[3];
+        gravity = new float[3];
+
     }
 
     protected void onResume(){
         super.onResume();
         mGoogleApiClient.connect();
+        if(hasAcceleration && hasMagnetometer) {
+            mSensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this, geoMagneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
         running = true;
     }
 
     protected void onPause(){
         super.onPause();
         mGoogleApiClient.disconnect();
+        if(hasAcceleration && hasMagnetometer) {
+            mSensorManager.unregisterListener(this);
+            mSensorManager.unregisterListener(this);
+        }
         running = false;
     }
 
-    protected void onStart(){
+    public void onStart(){
         super.onStart();
 
     }
 
-    protected void onStop(){
+    public void onStop(){
         super.onStop();
     }
 
-    protected void onDestroy(){
+    public void onDestroy(){
         super.onDestroy();
     }
 
     public void savePosButton (View view){
+        float[] orientation = new float[3];
+        float[] rotationR = new float[16];
+        float[] rotationI = new float[16];
+        float bearingToNorth;
+        double helpRad;
+
+
         Log.e(TAG, "Save Position Button is pressed");
 
         Vibrator vibe = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+
 
         if(!conManager.getMobilConnection()){
             Log.e(TAG, "Mobil is not connected");
@@ -211,6 +275,21 @@ public class MainActivity extends Activity implements
                 "\nLongitude:  " + String.valueOf( location.getLongitude()) +
                 "\nAccuracy:" + String.valueOf(location.getAccuracy()));
 
+        if(hasAcceleration && hasMagnetometer) {
+            if (mSensorManager.getRotationMatrix(rotationR, rotationI, gravity, geomagnetic)) {
+
+                mSensorManager.getOrientation(rotationR, orientation);
+                helpRad = orientation[0];
+                helpRad = Math.toDegrees(helpRad);
+
+                bearingToNorth = (float) helpRad;
+
+                location.setBearing(bearingToNorth);
+            } else {
+                Log.e(TAG, "not able to get orientation");
+            }
+        }
+
         kmlFile.addLocation(location);
 
         if(vibe.hasVibrator()){
@@ -218,11 +297,6 @@ public class MainActivity extends Activity implements
         }
 
         conManager.sendMessage(newData);
-
-        //syncWithMobil();
-
-
-
     }
 
     public boolean hasGPS(){
