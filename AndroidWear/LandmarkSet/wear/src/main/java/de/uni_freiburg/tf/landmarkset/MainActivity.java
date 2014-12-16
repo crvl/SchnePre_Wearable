@@ -91,7 +91,7 @@ public class MainActivity extends Activity implements
         Log.e(TAG,"Latitude:  " + String.valueOf( location.getLatitude()) +
                 "\nLongitude:  " + String.valueOf( location.getLongitude()));
 
-        //kmlFile.addWayPoint(location);
+        kmlFile.addWayPoint(location);
     }
 
     public void onConnectionChange(boolean connected){
