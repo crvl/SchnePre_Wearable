@@ -16,6 +16,8 @@ import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.service.voice.AlwaysOnHotwordDetector;
+import android.service.voice.VoiceInteractionService;
 import android.support.wearable.view.CardFragment;
 import android.support.wearable.view.CardScrollView;
 import android.support.wearable.view.CircledImageView;
@@ -51,6 +53,8 @@ import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
 
 import java.io.IOException;
+
+import static android.service.voice.AlwaysOnHotwordDetector.Callback;
 
 public class MainActivity extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -217,6 +221,8 @@ public class MainActivity extends Activity implements
         geomagnetic = new float[3];
         gravity = new float[3];
 
+
+
     }
     /*this function will be called by the system when restarting the app without destroying it before*/
     public void onStart(){
@@ -233,6 +239,10 @@ public class MainActivity extends Activity implements
             mSensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_NORMAL);
             mSensorManager.registerListener(this, geoMagneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
+
+        //start the hotword detection
+        startService(new Intent(MainActivity.this, HotwordInteractionService.class));
+
         running = true;
     }
     /*this function will be called when the app go to background*/
@@ -244,6 +254,8 @@ public class MainActivity extends Activity implements
             mSensorManager.unregisterListener(this);
         }
         running = false;
+
+        stopService(new Intent(MainActivity.this, HotwordInteractionService.class));
     }
 
 
