@@ -93,15 +93,20 @@ public class MainActivity extends Activity implements
 
         kmlFile.addWayPoint(location);
     }
-
+    /*this function will be called when the connection to the mobile phone changes*/
     public void onConnectionChange(boolean connected){
+
         if(!hasGPS()) {
             if (connected) {
+                //if the system has no GPS receiver remove the notification
+                //that the system cannot take placmarks and enable the save position button
                 fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.detach(cardFragment);
                 fragmentTransaction.commit();
                 saveGpsButton.setClickable(true);
             } else {
+                //if the system has no GPS receiver show the notification
+                //that the system cannot take placmarks and disable the save position button
                 fragmentTransaction = fragmentManager.beginTransaction();
                 fragmentTransaction.attach(cardFragment);
                 fragmentTransaction.commit();
@@ -110,16 +115,20 @@ public class MainActivity extends Activity implements
         }
     }
 
+    /*this function will be called from the sensor api when the accuracy of a sensor change*/
     public final void onAccuracyChanged(Sensor sensor, int accuracy){
 
     }
 
+    /*this function will be called from the sensor api when the sensor value change*/
     public final void onSensorChanged(SensorEvent event){
+        //get the values of the gravity Sensor
         if(event.sensor == gravitySensor){
             if(event.accuracy != SensorManager.SENSOR_STATUS_UNRELIABLE) {
                 gravity = event.values.clone();
             }
         }
+        //get the values of the earth magnetic sensor
         if(event.sensor == geoMagneticSensor){
             if(event.accuracy != SensorManager.SENSOR_STATUS_UNRELIABLE) {
                 geomagnetic = event.values.clone();
@@ -127,10 +136,11 @@ public class MainActivity extends Activity implements
         }
     }
 
-
+    /*this function will be called when the google api client is connected*/
     public void onConnected(Bundle dataBundle){
         apiConnected = true;
 
+        //setup the service to get the location
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(2);
@@ -139,17 +149,19 @@ public class MainActivity extends Activity implements
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
     }
 
-
+    /*this function will be called when the connection to the google api client failed*/
     public void onConnectionFailed(ConnectionResult connectionResult){
         Log.e(TAG, "Connection Faild");
         apiConnected = false;
     }
-
+    /*this function will be called when the connection to the google api client is suspended*/
     public void onConnectionSuspended(int cause){
         Log.e(TAG, "Connection Suspended");
         apiConnected = false;
     }
 
+    /*this is the entry point for this activity and
+    will be called by the system on creation of the activity*/
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -159,6 +171,7 @@ public class MainActivity extends Activity implements
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
+                //get the save Position button
                 saveGpsButton = (CircledImageView) stub.findViewById(R.id.savePosition);
             }
         });
@@ -172,7 +185,7 @@ public class MainActivity extends Activity implements
         fragmentTransaction.detach(cardFragment);
         fragmentTransaction.commit();
 
-
+        //create the google api client
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addApi(Wearable.API)
@@ -181,6 +194,7 @@ public class MainActivity extends Activity implements
 
                 .build();
 
+        //init the gravity and magnetic sensor
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         geoMagneticSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         gravitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -191,18 +205,27 @@ public class MainActivity extends Activity implements
         if(gravitySensor == null){hasAcceleration = false;}
         else {hasAcceleration = true;}
 
-
+        //create or open the kml file where to write the placemarks
         kmlFile = new KmlCreate(this.getApplicationContext().getFilesDir());
 
+        //create the instance of the connection manager
         conManager = new ConnectionManager(mGoogleApiClient, kmlFile, this);
 
+        //prevent the screen from turning off
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         geomagnetic = new float[3];
         gravity = new float[3];
 
     }
+    /*this function will be called by the system when restarting the app without destroying it before*/
+    public void onStart(){
+        super.onStart();
 
+    }
+
+    /*this function will also called from the system on app start and
+    when the app come to foreground again*/
     protected void onResume(){
         super.onResume();
         mGoogleApiClient.connect();
@@ -212,7 +235,7 @@ public class MainActivity extends Activity implements
         }
         running = true;
     }
-
+    /*this function will be called when the app go to background*/
     protected void onPause(){
         super.onPause();
         mGoogleApiClient.disconnect();
@@ -223,19 +246,18 @@ public class MainActivity extends Activity implements
         running = false;
     }
 
-    public void onStart(){
-        super.onStart();
 
-    }
-
+    /*this function will be called on app close by the system*/
     public void onStop(){
         super.onStop();
     }
 
+    /*this function will be called by the system on destroying the app*/
     public void onDestroy(){
         super.onDestroy();
     }
 
+    /*this function will be called when the button of this activity is pressed*/
     public void savePosButton (View view){
         float[] orientation = new float[3];
         float[] rotationR = new float[16];
@@ -248,7 +270,7 @@ public class MainActivity extends Activity implements
 
         Vibrator vibe = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
 
-
+        //test if the mobile phone is connected
         if(!conManager.getMobilConnection()){
             Log.e(TAG, "Mobil is not connected");
 
@@ -266,19 +288,24 @@ public class MainActivity extends Activity implements
             }
         }
 
+        //show a small message that the position was saved
         Toast.makeText(this, "Position Saved", Toast.LENGTH_SHORT).show();
 
+        //get the latest location
         Location location = LocationServices.FusedLocationApi
                 .getLastLocation(mGoogleApiClient);
+
         Log.e("MyWearActivity", "\nGot location" +
                 "\nLatitude:  " + String.valueOf( location.getLatitude()) +
                 "\nLongitude:  " + String.valueOf( location.getLongitude()) +
                 "\nAccuracy:" + String.valueOf(location.getAccuracy()));
 
+        //if the system has a magnetic and a acceleration sensor set the bearing in the location
         if(hasAcceleration && hasMagnetometer) {
             if (mSensorManager.getRotationMatrix(rotationR, rotationI, gravity, geomagnetic)) {
 
                 mSensorManager.getOrientation(rotationR, orientation);
+                //helper variable needed to deal with conversion between double and float
                 helpRad = orientation[0];
                 helpRad = Math.toDegrees(helpRad);
 
@@ -290,23 +317,29 @@ public class MainActivity extends Activity implements
             }
         }
 
+        //add the location to the kmlFile
         kmlFile.addLocation(location);
 
+        //let the watch vibrate for 250ms
         if(vibe.hasVibrator()){
             vibe.vibrate(250);
         }
 
+        //send a message to the mobile phone to notify that there are new data available
         conManager.sendMessage(newData);
     }
 
+    /*this function tests if the watch has a GPS receiver*/
     public boolean hasGPS(){
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
     }
 
+    /*this function returns the state of the api connection*/
     public boolean isApiConnected(){
         return apiConnected;
     }
 
+    /*this function returns the state of activity*/
     public boolean isRunning(){
         return running;
     }
