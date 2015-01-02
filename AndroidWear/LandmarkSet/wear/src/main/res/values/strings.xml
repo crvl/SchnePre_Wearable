@@ -8,5 +8,8 @@
     <string name="description">This is a custom Card with a long text in it to show the Card</string>
     <string name="button_name">Save GPS Position</string>
     <string name="title_activity_no_gps">NoGPSActivity</string>
+    <string name="title_activity_start">StartActivity</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 
 </resources>
