@@ -51,7 +51,6 @@ public class HotwordInteractionService extends VoiceInteractionService {
         }
     };
 
-    @Override
     public void onReady(){
         super.onReady();
 
@@ -62,11 +61,11 @@ public class HotwordInteractionService extends VoiceInteractionService {
     public int onStartCommand(Intent intent, int flags, int startId){
 
 
-        Bundle args = new Bundle();
+        /*Bundle args = new Bundle();
         args.putParcelable("intent", new Intent(this, MainActivity.class));
         startSession(args);
         stopSelf(startId);
-
+        */
         return START_NOT_STICKY;
     }
 

@@ -241,7 +241,7 @@ public class MainActivity extends Activity implements
         }
 
         //start the hotword detection
-        //startService(new Intent(MainActivity.this, HotwordInteractionService.class));
+        startService(new Intent(MainActivity.this, HotwordInteractionService.class));
 
         running = true;
     }
@@ -255,7 +255,7 @@ public class MainActivity extends Activity implements
         }
         running = false;
 
-        //stopService(new Intent(MainActivity.this, HotwordInteractionService.class));
+        stopService(new Intent(MainActivity.this, HotwordInteractionService.class));
     }
 
 
