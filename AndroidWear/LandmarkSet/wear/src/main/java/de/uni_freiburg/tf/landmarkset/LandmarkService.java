@@ -134,10 +134,16 @@ public class LandmarkService extends Service implements
         return mBinder;
     }
 
+    public boolean onUnbind(Intent intent){
+        stopSelf();
+        return false;
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         mGoogleApiClient.disconnect();
+        isApiConnected = false;
         isRunning = false;
         if (hasAcceleration && hasMagnetometer) {
             mSensorManager.unregisterListener(this);
@@ -174,10 +180,10 @@ public class LandmarkService extends Service implements
         //super.onMessageReceived(messageEvent);
         byte[] destBytes;
 
-        if (!isApiConnected) {
+        /*if (!isApiConnected) {
             mGoogleApiClient.connect();
             while (!isApiConnected) ;
-        }
+        }*/
 
         if (messageEvent.getPath().equals(deletePath)) {
             Log.e(TAG, "Delete Message Received");
@@ -195,10 +201,10 @@ public class LandmarkService extends Service implements
             destBytes = messageEvent.getData();
             //convert Back bytes to location and set it to destination
         }
-
+        /*
         if (!isRunning) {
             mGoogleApiClient.disconnect();
-        }
+        }*/
     }
 
     private void syncWithMobil() {
@@ -352,7 +358,10 @@ public class LandmarkService extends Service implements
         Log.e(TAG, "Latitude:  " + String.valueOf(location.getLatitude()) +
                 "\nLongitude:  " + String.valueOf(location.getLongitude()));
 
-        kmlFile.addWayPoint(location);
+        if(isRunning) {
+            kmlFile.addWayPoint(location);
+            Log.i(TAG, "waypoint writen to file");
+        }
         actLocation = location;
         if (serviceCallbacks != null) {
             serviceCallbacks.onRelativeLocationChange(location.distanceTo(destLocation),
