@@ -40,6 +40,7 @@ public class FindBack extends Activity implements
     private ImageView arrow;
     private String TAG = "Find Back APP";
 
+
     private LandmarkService mService;
     private boolean mBound = false;
     private final FindBack findBack = this;
@@ -84,6 +85,7 @@ public class FindBack extends Activity implements
     protected void onStart(){
         super.onStart();
         Intent intent = new Intent(this, LandmarkService.class);
+        intent.setAction("/findBack");
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -144,8 +146,8 @@ public class FindBack extends Activity implements
 
         bearing = bearingToNorth[0] - bearingToDestination;
 
-        Log.i(TAG,"Bearing to North" + String.valueOf(bearingToNorth));
-        Log.i(TAG,"Bearing to Destination" + String.valueOf(bearingToDestination));
+        //Log.i(TAG,"Bearing to North" + String.valueOf(bearingToNorth));
+        //Log.i(TAG,"Bearing to Destination" + String.valueOf(bearingToDestination));
 
         RotateAnimation ra = new RotateAnimation(
                 imageDegree,

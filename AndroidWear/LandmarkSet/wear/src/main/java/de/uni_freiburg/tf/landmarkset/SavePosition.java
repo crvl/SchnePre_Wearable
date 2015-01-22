@@ -108,6 +108,7 @@ public class SavePosition extends Activity implements LandmarkServiceCallbacks{
     public void onStart(){
         super.onStart();
         Intent intent = new Intent(this, LandmarkService.class);
+        intent.setAction("/savePos");
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 

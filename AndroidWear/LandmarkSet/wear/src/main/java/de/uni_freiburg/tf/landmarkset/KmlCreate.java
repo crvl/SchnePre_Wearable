@@ -104,6 +104,14 @@ public class KmlCreate {
         writer.println("<kml xmlns=\"http://www.opengis.net/kml/2.2\">");
         writer.println("<Document>");
         writer.println("<Placemark>");
+        writer.println("<name>Save Position</name>");
+        writer.println("<LineString>");
+        writer.println("<coordinates>");
+        writer.println("</coordinates>");
+        writer.println("</LineString>");
+        writer.println("</Placemark>");
+        writer.println("<Placemark>");
+        writer.println("<name>Find Back</name>");
         writer.println("<LineString>");
         writer.println("<coordinates>");
         writer.println("</coordinates>");
@@ -171,7 +179,7 @@ public class KmlCreate {
         }
     }
 
-    public void addWayPoint(Location location){
+    public void addWayPoint(Location location, String lineName){
         PrintWriter kmlWriter;
         FileReader kmlReader;
         BufferedReader kmlBuffer;
@@ -181,22 +189,38 @@ public class KmlCreate {
 
         String tempString = "";
         String lastTmpString = "";
+        String secondLastTmpString = "";
 
         try {
             kmlWriter = new PrintWriter(tempKml);
             kmlReader = new FileReader(kmlData);
             kmlBuffer = new BufferedReader(kmlReader);
 
-            while (!((tempString = kmlBuffer.readLine()).equals("<coordinates>")
-                    && lastTmpString.equals("<LineString>"))){
-                kmlWriter.println(tempString);
-                lastTmpString = tempString;
+            tempString = kmlBuffer.readLine();
+
+            if(tempString != null) {
+                while (!((tempString).equals("<coordinates>")
+                        && lastTmpString.equals("<LineString>")
+                        && secondLastTmpString.equals("<name>" + lineName + "</name>"))) {
+
+                    kmlWriter.println(tempString);
+                    secondLastTmpString = lastTmpString;
+                    lastTmpString = tempString;
+
+                    tempString = kmlBuffer.readLine();
+
+                    if (tempString == null) {
+                        break;
+                    }
+                }
             }
 
-            kmlWriter.println(tempString);
-            kmlWriter.println(String.valueOf(location.getLongitude()) + ","
-                    + String.valueOf(location.getLatitude()) + ","
-                    + String.valueOf(location.getAltitude()));
+            if(tempString != null) {
+                kmlWriter.println(tempString);
+                kmlWriter.println(String.valueOf(location.getLongitude()) + ","
+                        + String.valueOf(location.getLatitude()) + ","
+                        + String.valueOf(location.getAltitude()));
+            }
 
             //write the rest of the orginal kml file to the temp file
             while ((tempString = kmlBuffer.readLine()) != null) {

@@ -46,6 +46,8 @@ public class LandmarkService extends Service implements
     private final String newData = "/newData";
     private final String newDestination = "/destChange";
 
+    private String action;
+
     //have to be static, otherwise the kmlFile and mGoogleApiClient will be null in a onMessageReceive
     private static GoogleApiClient mGoogleApiClient;
     private static KmlCreate kmlFile;
@@ -83,6 +85,7 @@ public class LandmarkService extends Service implements
     @Override
     public IBinder onBind(Intent intent) {
 
+        action = intent.getAction();
         //create the google api client
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
@@ -358,9 +361,17 @@ public class LandmarkService extends Service implements
         Log.e(TAG, "Latitude:  " + String.valueOf(location.getLatitude()) +
                 "\nLongitude:  " + String.valueOf(location.getLongitude()));
 
-        if(isRunning) {
-            kmlFile.addWayPoint(location);
-            Log.i(TAG, "waypoint writen to file");
+        if(action != null) {
+            if(action.equals("/savePos")) {
+                //add way point to save position way
+                kmlFile.addWayPoint(location, "Save Position");
+                Log.i(TAG, "Save Position waypoint writen to file");
+            }
+            else if(action.equals("/findBack")){
+                //add way point to find back way
+                kmlFile.addWayPoint(location, "Find Back");
+                Log.i(TAG, "Find Back waypoint writen to file");
+            }
         }
         actLocation = location;
         if (serviceCallbacks != null) {
