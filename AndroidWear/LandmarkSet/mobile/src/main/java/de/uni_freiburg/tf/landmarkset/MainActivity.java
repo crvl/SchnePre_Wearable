@@ -1,6 +1,7 @@
 package de.uni_freiburg.tf.landmarkset;
 
 import android.app.Activity;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.ExecutionException;
@@ -55,32 +57,35 @@ public class MainActivity extends ActionBarActivity implements
 
     private Activity activity;
 
+    private Location destination;
+
     private final String TAG = "Landmark mobile App";
     private final String deletePath = "/deleteFile";
     private final String syncPath = "/syncFile";
     private final String newDataPath  = "/newData";
+    private final String newDestination = "/destChange";
     private String wearNode;
 
     public void delete_data(View view){
 
         Log.e(TAG,"Delete Data Button pressed");
-        sendMessage(deletePath);
+        sendMessage(deletePath, null);
 
     }
 
     public void sync_data(View view){
 
         Log.e(TAG, "Sync Data Button pressed");
-        sendMessage(syncPath);
+        sendMessage(syncPath, null);
     }
 
     public void onMessageReceived(MessageEvent messageEvent){
         if(messageEvent.getPath().equals(newDataPath)){
-            sendMessage(syncPath);
+            sendMessage(syncPath, null);
         }
     }
 
-    private void sendMessage(final String path){
+    private void sendMessage(final String path, final byte[] payload){
         new Thread(new Runnable(){
             public void run(){
                 NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.
@@ -88,7 +93,7 @@ public class MainActivity extends ActionBarActivity implements
 
                 for(Node node : nodes.getNodes()){
                     MessageApi.SendMessageResult result = Wearable.MessageApi.
-                            sendMessage(wearGoogleApiClient,node.getId(),path, null).await();
+                            sendMessage(wearGoogleApiClient,node.getId(),path, payload).await();
                 }
             }
         }).start();
@@ -98,6 +103,13 @@ public class MainActivity extends ActionBarActivity implements
         Wearable.DataApi.addListener(wearGoogleApiClient, this);
         Wearable.MessageApi.addListener(wearGoogleApiClient, this);
 
+        ByteBuffer bb = ByteBuffer.allocate(28);
+        bb.putDouble(destination.getLatitude());
+        bb.putDouble(destination.getLongitude());
+        bb.putDouble(destination.getAltitude());
+        bb.putFloat(destination.getBearing());
+
+        sendMessage(newDestination, bb.array());
     }
 
     public void onConnectionSuspended(int i){
@@ -211,6 +223,13 @@ public class MainActivity extends ActionBarActivity implements
                 .addOnConnectionFailedListener(this)
                 .addApi(Wearable.API)
                 .build();
+
+        destination = new Location("MobileApp");
+
+        destination.setLatitude(48.01262);
+        destination.setLongitude(7.83504);
+        destination.setAltitude(300);
+
 
     }
 

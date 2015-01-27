@@ -30,6 +30,7 @@ import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class LandmarkService extends Service implements
         MessageApi.MessageListener,
@@ -45,6 +46,7 @@ public class LandmarkService extends Service implements
     private final String syncPath = "/syncFile";
     private final String newData = "/newData";
     private final String newDestination = "/destChange";
+
 
     private String action;
 
@@ -70,7 +72,7 @@ public class LandmarkService extends Service implements
     private final IBinder mBinder = new LocalBinder();
     private LandmarkServiceCallbacks serviceCallbacks;
 
-    private Location destLocation;
+    private static Location destLocation = new Location("By my Self");;
     private Location actLocation;
 
     //class used for the client Binder
@@ -127,12 +129,11 @@ public class LandmarkService extends Service implements
 
         isRunning = true;
 
-        destLocation = new Location("By my Self");
         //set the location
         //in further use this will be done by receiving a message from the mobile phone
-        destLocation.setLatitude(48.01262);
-        destLocation.setLongitude(7.83504);
-        destLocation.setAltitude(300);
+        //destLocation.setLatitude(48.01262);
+        //destLocation.setLongitude(7.83504);
+        //destLocation.setAltitude(300);
 
         return mBinder;
     }
@@ -183,6 +184,7 @@ public class LandmarkService extends Service implements
         //super.onMessageReceived(messageEvent);
         byte[] destBytes;
 
+
         /*if (!isApiConnected) {
             mGoogleApiClient.connect();
             while (!isApiConnected) ;
@@ -202,8 +204,19 @@ public class LandmarkService extends Service implements
         if (messageEvent.getPath().equals(newDestination)){
             Log.i(TAG, "New destination received");
             destBytes = messageEvent.getData();
+            ByteBuffer bb = ByteBuffer.allocate(28);
+
+            bb.put(destBytes);
+
+            destLocation.setLatitude(bb.getDouble(0));
+            destLocation.setLongitude(bb.getDouble(8));
+            destLocation.setAltitude(bb.getDouble(16));
+            destLocation.setBearing(bb.getFloat(24));
+            Log.i(TAG, "Destination written");
+
             //convert Back bytes to location and set it to destination
         }
+
         /*
         if (!isRunning) {
             mGoogleApiClient.disconnect();
