@@ -28,16 +28,24 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -66,6 +74,9 @@ public class MainActivity extends ActionBarActivity implements
     private final String newDestination = "/destChange";
     private String wearNode;
 
+    private ArrayList<Location> savedPlaces;
+
+    //this function is called when the delete button is pressed
     public void delete_data(View view){
 
         Log.e(TAG,"Delete Data Button pressed");
@@ -73,18 +84,134 @@ public class MainActivity extends ActionBarActivity implements
 
     }
 
+    //this function is called when the sync button is pressed
     public void sync_data(View view){
 
         Log.e(TAG, "Sync Data Button pressed");
         sendMessage(syncPath, null);
     }
 
+    //sends a destination to the wearable device
+    //the destination will be used for "Find Back"
+    public void sendDestinationToWear(Location destLocation){
+        ByteBuffer bb = ByteBuffer.allocate(28);
+        bb.putDouble(destLocation.getLatitude());
+        bb.putDouble(destLocation.getLongitude());
+        bb.putDouble(destLocation.getAltitude());
+        bb.putFloat(destLocation.getBearing());
+
+        sendMessage(newDestination, bb.array());
+    }
+    //this function gets the points from a kml file and save them in a list
+    //fileName: gives the location of the kml file
+    //locationList: is the list where the points are saved to
+    public ArrayList<Location> getPlacesFromKML(String fileName, ArrayList<Location> locationList){
+        //List<Location> locationList;
+        File kmlFile;
+        FileReader inputReader;
+        XmlPullParserFactory factory;
+        XmlPullParser parser;
+        int eventType;
+
+        locationList.clear();
+
+        if(isExternalStorageWritable()) {
+            kmlFile = new File(Environment.getExternalStorageDirectory(), fileName);
+            if (!kmlFile.exists()) {
+                //file does not exist, so we can not get points out of it
+                return null;
+            }
+            try {
+                inputReader = new FileReader(kmlFile);
+                factory = XmlPullParserFactory.newInstance();
+                factory.setNamespaceAware(true);
+                parser = factory.newPullParser();
+
+                parser.setInput(inputReader);
+                eventType = parser.getEventType();
+
+                //parse the document until the end
+                while (eventType != XmlPullParser.END_DOCUMENT){
+                    if(eventType == XmlPullParser.START_TAG){
+                        //if a placemark is found
+                        if(parser.getName().equals("Placemark")){
+                            eventType = parser.next();
+                            //searching for Point tag in Placemark
+                            while (!(eventType == XmlPullParser.START_TAG
+                                    && parser.getName().equals("Point"))){
+                                if(eventType ==XmlPullParser.END_DOCUMENT){
+                                    return null;
+                                }
+                                eventType = parser.next();
+                            }
+                            eventType = parser.next();
+                            //test if the KML file is well formed and have
+                            //the coordinates right after the Point tag
+                            while(eventType != XmlPullParser.START_TAG){
+                                eventType = parser.next();
+                            }
+
+                            if(eventType == XmlPullParser.START_TAG
+                                    && parser.getName().equals("coordinates")){
+                                eventType = parser.next();
+                                if(eventType == XmlPullParser.TEXT){
+                                    //decode the string and add the point to the list
+                                    locationList.add(decodeCoordinatesString(parser.getText()));
+                                }
+                            }
+                        }
+                    }
+                    eventType = parser.next();
+                }
+
+            }catch (XmlPullParserException e){
+                Log.e(TAG, "Parser Exeption");
+                return null;
+            }catch (IOException e){
+                Log.e(TAG, "Parser IO Exeption");
+                return null;
+            }
+        }
+        return locationList;
+    }
+
+    //this function decode the string from the kml file to a Location object
+    //coordinateString: is the String from the kml file
+    //returns the decoded Location
+    private Location decodeCoordinatesString(String coordinateString) {
+        Location location;
+        int firstSeparatorPos;
+        int secondSeparatorPos;
+        int separator = ',';
+        String lon;
+        String lat;
+        String alt;
+
+        location = new Location("From KML File");
+
+        firstSeparatorPos = coordinateString.indexOf(separator);
+        secondSeparatorPos = coordinateString.indexOf(separator, firstSeparatorPos + 1);
+        lon = coordinateString.substring(0, firstSeparatorPos);
+        lat = coordinateString.substring(firstSeparatorPos + 1, secondSeparatorPos);
+        alt = coordinateString.substring(secondSeparatorPos + 1);
+
+        location.setLongitude(Double.valueOf(lon));
+        location.setLatitude(Double.valueOf(lat));
+        location.setAltitude(Double.valueOf(alt));
+
+        return location;
+    }
+
+    //this function is called by the system when a message is received
     public void onMessageReceived(MessageEvent messageEvent){
         if(messageEvent.getPath().equals(newDataPath)){
             sendMessage(syncPath, null);
         }
     }
 
+    //with this function a message can be send to the wearable
+    //path: with this string the wearable knows which message was send
+    //payload: with this byte array data can be send with the message
     private void sendMessage(final String path, final byte[] payload){
         new Thread(new Runnable(){
             public void run(){
@@ -99,36 +226,38 @@ public class MainActivity extends ActionBarActivity implements
         }).start();
     }
 
+    //This function is called by the system when the GoogleApiClient is connected
     public void onConnected(Bundle dataBundle){
         Wearable.DataApi.addListener(wearGoogleApiClient, this);
         Wearable.MessageApi.addListener(wearGoogleApiClient, this);
 
-        ByteBuffer bb = ByteBuffer.allocate(28);
-        bb.putDouble(destination.getLatitude());
-        bb.putDouble(destination.getLongitude());
-        bb.putDouble(destination.getAltitude());
-        bb.putFloat(destination.getBearing());
-
-        sendMessage(newDestination, bb.array());
+        //only for testing
+        sendDestinationToWear(destination);
     }
 
+    //This function is called by the system when the GoogleApiClient is suspended by the system
     public void onConnectionSuspended(int i){
 
     }
 
+    //This function is called by the system when the connection to the GoogleApiClient failed
     public void onConnectionFailed(ConnectionResult connectionResult){
         Log.e(TAG, "API connection failer");
     }
 
+    //This function is called by the system when there are new data in the asset from the wearable
     public void onDataChanged(DataEventBuffer dataEvents){
+
         Log.e(TAG,"onDataChange was called");
-        ParcelFileDescriptor pfd;
         for(DataEvent event : dataEvents){
             if (event.getType() == DataEvent.TYPE_CHANGED &&
                     event.getDataItem().getUri().getPath().equals("/kmlFile")){
                 Log.e(TAG,"Events: " + event.getDataItem().getAssets().get("Positions"));
                 DataItemAsset dia = event.getDataItem().getAssets().get("Positions");
                 loadKmlFileFromAsset(dia);
+
+                getPlacesFromKML("landmarks" + File.separator + "landmark.kml", savedPlaces);
+                Log.i(TAG, "Extracted " + savedPlaces.size() + " Points");
 
                 activity.runOnUiThread(new Runnable() {
                     public void run(){
@@ -139,6 +268,8 @@ public class MainActivity extends ActionBarActivity implements
         }
     }
 
+    //with this function we decode the data send from the wearable to the watch
+    //and save them to the external storage
     public File loadKmlFileFromAsset (DataItemAsset dia){
 
         File receivedKmlFile;
@@ -210,7 +341,6 @@ public class MainActivity extends ActionBarActivity implements
         return false;
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -226,11 +356,15 @@ public class MainActivity extends ActionBarActivity implements
 
         destination = new Location("MobileApp");
 
+        //should be replaced by clicking on a marker on the map
         destination.setLatitude(48.01262);
         destination.setLongitude(7.83504);
         destination.setAltitude(300);
 
+        savedPlaces = new ArrayList<>();
 
+        getPlacesFromKML("landmarks" + File.separator + "landmark.kml", savedPlaces);
+        Log.i(TAG, "Extracted " + savedPlaces.size() + " Points");
     }
 
     protected void onPause(){
