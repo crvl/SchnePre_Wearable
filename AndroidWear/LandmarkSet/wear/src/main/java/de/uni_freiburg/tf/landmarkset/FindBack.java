@@ -8,30 +8,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.wearable.view.CardFragment;
 import android.support.wearable.view.WatchViewStub;
-import android.util.Log;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.wearable.Node;
-import com.google.android.gms.wearable.Wearable;
-import com.google.android.gms.wearable.NodeApi;
 
 public class FindBack extends Activity implements
         LandmarkServiceCallbacks{
@@ -47,7 +32,8 @@ public class FindBack extends Activity implements
 
     private FragmentManager fragmentManager;
     private FragmentTransaction fragmentTransaction;
-    private CardFragment cardFragment;
+    private CardFragment cardFragmentNoGPS;
+    private CardFragment cardFragmentCalibrationNedded;
 
     private float imageDegree;
 
@@ -69,10 +55,14 @@ public class FindBack extends Activity implements
         //create the card to show that no location service is available and hide it
         fragmentManager = getFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
-        cardFragment = CardFragment.create("No GPS", "The watch has no connection " +
+        cardFragmentNoGPS = CardFragment.create("No GPS", "The watch has no connection " +
                 "to the mobile phone and no GPS receiver!");
-        fragmentTransaction.add(R.id.watch_view_stub, cardFragment);
-        fragmentTransaction.detach(cardFragment);
+        cardFragmentCalibrationNedded = CardFragment.create("Calibration Needed",
+                "Calibration is needed! Make the usual eight pattern!");
+        fragmentTransaction.add(R.id.watch_view_stub, cardFragmentNoGPS);
+        fragmentTransaction.add(R.id.watch_view_stub, cardFragmentCalibrationNedded);
+        fragmentTransaction.detach(cardFragmentNoGPS);
+        fragmentTransaction.detach(cardFragmentCalibrationNedded);
         fragmentTransaction.commit();
 
         imageDegree = 0;
@@ -119,18 +109,29 @@ public class FindBack extends Activity implements
                 //if the system has no GPS receiver remove the notification
                 //that the system cannot take placmarks and enable the save position button
                 fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.detach(cardFragment);
+                fragmentTransaction.detach(cardFragmentNoGPS);
                 fragmentTransaction.commit();
             } else {
                 //if the system has no GPS receiver show the notification
                 //that the system cannot take placmarks and disable the save position button
                 fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.attach(cardFragment);
+                fragmentTransaction.attach(cardFragmentNoGPS);
                 fragmentTransaction.commit();
             }
         }
     }
 
+    public void onCalibrationChange(boolean calibrated, int accuracy){
+        if(calibrated) {
+            fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.detach(cardFragmentCalibrationNedded);
+            fragmentTransaction.commit();
+        }else{
+            fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.attach(cardFragmentCalibrationNedded);
+            fragmentTransaction.commit();
+        }
+    }
 
     @Override
     public void onRelativeLocationChange(float dist, float bearingToDestination) {

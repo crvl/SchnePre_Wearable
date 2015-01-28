@@ -117,8 +117,8 @@ public class LandmarkService extends Service implements
         }
 
         if (hasAcceleration && hasMagnetometer) {
-            mSensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_NORMAL);
-            mSensorManager.registerListener(this, geoMagneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_FASTEST);
+            mSensorManager.registerListener(this, geoMagneticSensor, SensorManager.SENSOR_DELAY_FASTEST);
         }
 
         geomagnetic = new float[3];
@@ -407,6 +407,13 @@ public class LandmarkService extends Service implements
                 geomagnetic = event.values.clone();
             }
         }
+        if((event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE
+                || event.accuracy == SensorManager.SENSOR_STATUS_ACCURACY_LOW)
+                && event.sensor == geoMagneticSensor){
+            if (serviceCallbacks != null) {
+                serviceCallbacks.onCalibrationChange(false, event.accuracy);
+            }
+        }
         if (serviceCallbacks != null && actLocation != null) {
             serviceCallbacks.onRelativeLocationChange(actLocation.distanceTo(destLocation),
                     actLocation.bearingTo(destLocation));
@@ -416,6 +423,17 @@ public class LandmarkService extends Service implements
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
+        if(sensor == geoMagneticSensor) {
+            if (accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE
+                    || accuracy == SensorManager.SENSOR_STATUS_ACCURACY_LOW) {
+                if (serviceCallbacks != null) {
+                    serviceCallbacks.onCalibrationChange(false, accuracy);
+                }
+            } else {
+                if (serviceCallbacks != null) {
+                    serviceCallbacks.onCalibrationChange(true, accuracy);
+                }
+            }
+        }
     }
 }

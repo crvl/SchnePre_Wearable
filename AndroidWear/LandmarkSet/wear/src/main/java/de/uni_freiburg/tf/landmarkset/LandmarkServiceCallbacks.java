@@ -10,4 +10,6 @@ public interface LandmarkServiceCallbacks{
     void onConnectionChange(boolean connected);
 
     void onRelativeLocationChange(float dist, float bearing);
+
+    void onCalibrationChange(boolean calibrated, int accuracy);
 }
