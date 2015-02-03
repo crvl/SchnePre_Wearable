@@ -15,6 +15,10 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
@@ -66,6 +70,8 @@ public class MainActivity extends ActionBarActivity implements
     private Activity activity;
 
     private Location destination;
+
+    private GoogleMap map;
 
     private final String TAG = "Landmark mobile App";
     private final String deletePath = "/deleteFile";
@@ -345,6 +351,10 @@ public class MainActivity extends ActionBarActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+
+        map.addMarker(new MarkerOptions().position(new LatLng(48.01262, 7.83504)));
 
         activity = this;
 
