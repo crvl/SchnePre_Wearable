@@ -15,9 +15,12 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.wearable.Asset;
@@ -272,6 +275,7 @@ public class MainActivity extends ActionBarActivity implements
                         Toast.makeText(activity, "New Data received", Toast.LENGTH_SHORT).show();
                         removeMarkers(markers);
                         markers = locationsToMap(savedPlaces, map);
+                        centerMarkers(markers, map);
                     }
                 });
             }
@@ -354,6 +358,28 @@ public class MainActivity extends ActionBarActivity implements
         return newMarkers;
     }
 
+    //function to set the markers in the middle of the map
+    //code is from http://stackoverflow.com/questions/14828217/android-map-v2-zoom-to-show-all-the-markers/14828739#14828739
+    public void centerMarkers(ArrayList<Marker> markersToWork, GoogleMap mapToWork){
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+        if(markersToWork.size() == 0){
+            return;
+        }
+
+        for (Marker marker : markersToWork){
+            builder.include(marker.getPosition());
+        }
+        LatLngBounds bounds = builder.build();
+
+        int padding = 0;
+
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+
+        mapToWork.animateCamera(cu);
+    }
+
+
     //remove the markers from the map given by the list
     public void removeMarkers(ArrayList<Marker> markers){
         for(Marker marker : markers){
@@ -401,6 +427,7 @@ public class MainActivity extends ActionBarActivity implements
         Log.i(TAG, "Extracted " + savedPlaces.size() + " Points");
 
         markers = locationsToMap(savedPlaces, map);
+        centerMarkers(markers, map);
     }
 
     protected void onPause(){
