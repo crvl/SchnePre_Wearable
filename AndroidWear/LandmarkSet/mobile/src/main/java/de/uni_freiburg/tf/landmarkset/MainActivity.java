@@ -18,6 +18,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
@@ -81,6 +82,7 @@ public class MainActivity extends ActionBarActivity implements
     private String wearNode;
 
     private ArrayList<Location> savedPlaces;
+    private ArrayList<Marker> markers;
 
     //this function is called when the delete button is pressed
     public void delete_data(View view){
@@ -268,6 +270,8 @@ public class MainActivity extends ActionBarActivity implements
                 activity.runOnUiThread(new Runnable() {
                     public void run(){
                         Toast.makeText(activity, "New Data received", Toast.LENGTH_SHORT).show();
+                        removeMarkers(markers);
+                        markers = locationsToMap(savedPlaces, map);
                     }
                 });
             }
@@ -338,6 +342,25 @@ public class MainActivity extends ActionBarActivity implements
         return null;
     }
 
+    //write the placemarks from the arraylist into the map
+    public ArrayList<Marker> locationsToMap(ArrayList<Location> locations, GoogleMap mapToWork){
+        ArrayList<Marker> newMarkers = new ArrayList<>();
+
+        for(Location location : locations){
+            newMarkers.add(mapToWork.addMarker(new MarkerOptions().
+                    position(new LatLng(location.getLatitude(), location.getLongitude()))));
+        }
+
+        return newMarkers;
+    }
+
+    //remove the markers from the map given by the list
+    public void removeMarkers(ArrayList<Marker> markers){
+        for(Marker marker : markers){
+            marker.remove();
+        }
+    }
+
     /* Checks if external storage is available for read and write */
     public boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
@@ -354,7 +377,7 @@ public class MainActivity extends ActionBarActivity implements
 
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 
-        map.addMarker(new MarkerOptions().position(new LatLng(48.01262, 7.83504)));
+        //map.addMarker(new MarkerOptions().position(new LatLng(48.01262, 7.83504)));
 
         activity = this;
 
@@ -372,9 +395,12 @@ public class MainActivity extends ActionBarActivity implements
         destination.setAltitude(300);
 
         savedPlaces = new ArrayList<>();
+        markers = new ArrayList<>();
 
         getPlacesFromKML("landmarks" + File.separator + "landmark.kml", savedPlaces);
         Log.i(TAG, "Extracted " + savedPlaces.size() + " Points");
+
+        markers = locationsToMap(savedPlaces, map);
     }
 
     protected void onPause(){
