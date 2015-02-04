@@ -63,17 +63,15 @@ public class MainActivity extends ActionBarActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         DataApi.DataListener,
-        MessageApi.MessageListener
-
-
+        MessageApi.MessageListener,
+        GoogleMap.OnMarkerClickListener,
+        GoogleMap.OnMapLoadedCallback
 {
 
 
     private GoogleApiClient wearGoogleApiClient;
 
     private Activity activity;
-
-    private Location destination;
 
     private GoogleMap map;
 
@@ -242,8 +240,7 @@ public class MainActivity extends ActionBarActivity implements
         Wearable.DataApi.addListener(wearGoogleApiClient, this);
         Wearable.MessageApi.addListener(wearGoogleApiClient, this);
 
-        //only for testing
-        sendDestinationToWear(destination);
+        map.setOnMarkerClickListener(this);
     }
 
     //This function is called by the system when the GoogleApiClient is suspended by the system
@@ -413,13 +410,6 @@ public class MainActivity extends ActionBarActivity implements
                 .addApi(Wearable.API)
                 .build();
 
-        destination = new Location("MobileApp");
-
-        //should be replaced by clicking on a marker on the map
-        destination.setLatitude(48.01262);
-        destination.setLongitude(7.83504);
-        destination.setAltitude(300);
-
         savedPlaces = new ArrayList<>();
         markers = new ArrayList<>();
 
@@ -427,7 +417,8 @@ public class MainActivity extends ActionBarActivity implements
         Log.i(TAG, "Extracted " + savedPlaces.size() + " Points");
 
         markers = locationsToMap(savedPlaces, map);
-        centerMarkers(markers, map);
+
+        map.setOnMapLoadedCallback(this);
     }
 
     protected void onPause(){
@@ -466,7 +457,27 @@ public class MainActivity extends ActionBarActivity implements
         return super.onOptionsItemSelected(item);
     }
 
+    //called when a marker is clicked
+    //sends the position of the marker to the watch as an destination
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        Location destination = new Location("from Map");
 
+        destination.setLatitude(marker.getPosition().latitude);
+        destination.setLongitude(marker.getPosition().longitude);
+
+        sendDestinationToWear(destination);
+
+        return false;
+    }
+
+    //called when the map has finished rendering
+    //after finishing rendering set the new camera position
+    //when it is done before the app will crash
+    @Override
+    public void onMapLoaded() {
+        centerMarkers(markers, map);
+    }
 }
 
 

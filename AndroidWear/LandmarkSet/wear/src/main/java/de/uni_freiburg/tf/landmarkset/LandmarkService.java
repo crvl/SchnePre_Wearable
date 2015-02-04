@@ -214,6 +214,8 @@ public class LandmarkService extends Service implements
             destLocation.setBearing(bb.getFloat(24));
             Log.i(TAG, "Destination written");
 
+
+
             //convert Back bytes to location and set it to destination
         }
 
