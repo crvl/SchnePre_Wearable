@@ -12,14 +12,14 @@
         android:id="@+id/savePosition"
         android:layout_height="110dp"
         android:layout_width="110dp"
-        android:src="@drawable/ic_launcher"
+        android:src="@drawable/setpos_lg"
         android:layout_gravity="center"
         android:layout_marginTop="24dp"
 
         android:onClick="savePosButton"
-        app:circle_color="@color/green"
+        app:circle_color="#0090d3"
         app:circle_radius="52dp"
-        app:circle_radius_pressed="55dp">
+        app:circle_radius_pressed="60dp">
 
     </android.support.wearable.view.CircledImageView>
 
