@@ -412,7 +412,7 @@ public class MainActivity extends ActionBarActivity implements
 
         syncDialog = new ProgressDialog(this);
         syncDialog.setMessage("Fetching KML data...");
-        syncDialog.setCancelable(false);
+        syncDialog.setCancelable(true);
 
         getPlacesFromKML("landmarks" + File.separator + "landmark.kml", savedPlaces);
         Log.i(TAG, "Extracted " + savedPlaces.size() + " Points");

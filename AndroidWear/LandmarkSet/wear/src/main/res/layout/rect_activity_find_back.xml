@@ -17,7 +17,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="20px"
-        android:src="@drawable/compass_lg"/>
+        android:src="@drawable/compass2_lg"/>
 
 
 </LinearLayout>
