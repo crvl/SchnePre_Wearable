@@ -1,10 +1,9 @@
 package de.uni_freiburg.tf.landmarkset;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Environment;
-import android.os.ParcelFileDescriptor;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,18 +22,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItemAsset;
-import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
-import com.google.android.gms.wearable.WearableListenerService;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -42,8 +38,6 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,12 +45,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 
 public class MainActivity extends ActionBarActivity implements
@@ -84,6 +73,7 @@ public class MainActivity extends ActionBarActivity implements
 
     private ArrayList<Location> savedPlaces;
     private ArrayList<Marker> markers;
+    private ProgressDialog syncDialog;
 
     //this function is called when the delete button is pressed
     public void delete_data(View view){
@@ -97,6 +87,10 @@ public class MainActivity extends ActionBarActivity implements
     public void sync_data(View view){
 
         Log.e(TAG, "Sync Data Button pressed");
+
+        // Use syncDialog to inform user that a task in the background is occurring
+        // Dismissed in function onDataChanged
+        syncDialog.show();
         sendMessage(syncPath, null);
     }
 
@@ -256,6 +250,9 @@ public class MainActivity extends ActionBarActivity implements
     //This function is called by the system when there are new data in the asset from the wearable
     public void onDataChanged(DataEventBuffer dataEvents){
 
+        // Dismiss syncDialog
+        syncDialog.dismiss();
+
         Log.e(TAG,"onDataChange was called");
         for(DataEvent event : dataEvents){
             if (event.getType() == DataEvent.TYPE_CHANGED &&
@@ -412,6 +409,10 @@ public class MainActivity extends ActionBarActivity implements
 
         savedPlaces = new ArrayList<>();
         markers = new ArrayList<>();
+
+        syncDialog = new ProgressDialog(this);
+        syncDialog.setMessage("Fetching KML data...");
+        syncDialog.setCancelable(false);
 
         getPlacesFromKML("landmarks" + File.separator + "landmark.kml", savedPlaces);
         Log.i(TAG, "Extracted " + savedPlaces.size() + " Points");
