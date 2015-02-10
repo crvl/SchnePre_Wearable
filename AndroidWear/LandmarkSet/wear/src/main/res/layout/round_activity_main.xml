@@ -20,7 +20,7 @@
         android:onClick="savePosButton"
         app:circle_color="#0090d3"
         app:circle_radius="52dp"
-        app:circle_radius_pressed="60dp">
+        app:circle_radius_pressed="57dp">
 
     </android.support.wearable.view.CircledImageView>
 

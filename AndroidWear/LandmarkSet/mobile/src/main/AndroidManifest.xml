@@ -16,10 +16,10 @@
 
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
         <meta-data android:name="com.google.android.maps.v2.API_KEY"
-            <!-- android:value="AIzaSyAz0qj37KQogiQt_qiil4DagaCfzQLHIqY" Schneider Value -->
-            android:value=""
-
-        />
+            android:value="AIzaSyBW6e-7MTzbZ5vn9uQjOSXTARFZy1ca7ec"/>
+            <!--
+                android:value="AIzaSyAz0qj37KQogiQt_qiil4DagaCfzQLHIqY"
+            -->
 
         <activity
             android:name="de.uni_freiburg.tf.landmarkset.MainActivity"
