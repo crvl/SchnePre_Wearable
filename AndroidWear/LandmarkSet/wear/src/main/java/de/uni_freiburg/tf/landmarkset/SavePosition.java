@@ -63,10 +63,14 @@ public class SavePosition extends Activity implements LandmarkServiceCallbacks{
         }
     }
 
+    //this function is needed to implement the LandmarkServiceCallbacks,
+    // but in this context it is not used
     public void onRelativeLocationChange(float dist, float bearing){
 
     }
 
+    //this function is called, when the state of the reliability of a sensor has changed.
+    //in this context it is used to show a information that a recalibration is needed.
     public void onCalibrationChange(boolean calibrated, int accuray){
         if(calibrated) {
             fragmentTransaction = fragmentManager.beginTransaction();
@@ -190,6 +194,7 @@ public class SavePosition extends Activity implements LandmarkServiceCallbacks{
     public boolean hasGPS(){
         return getPackageManager().hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS);
     }
+
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override

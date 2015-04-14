@@ -85,6 +85,8 @@ public class LandmarkService extends Service implements
     //public LandmarkService(){}
 
     @Override
+    //initialization of the service
+    //is called when the service is started
     public IBinder onBind(Intent intent) {
 
         action = intent.getAction();
@@ -159,7 +161,7 @@ public class LandmarkService extends Service implements
         serviceCallbacks = callbacks;
     }
 
-
+    //this function is called, when the connection to the mobile phone is lost
     public void onPeerDisconnected(Node peer) {
         //super.onPeerDisconnected(peer);
         if (serviceCallbacks != null) {
@@ -170,6 +172,7 @@ public class LandmarkService extends Service implements
 
     }
 
+    //this function is called, when the watch has connected to a mobile phone
     public void onPeerConnected(Node peer) {
         //super.onPeerConnected(peer);
         if (serviceCallbacks != null) {
@@ -179,7 +182,7 @@ public class LandmarkService extends Service implements
         mobileConnected = true;
     }
 
-
+    //this function is called, when a message from the mobile phone is received.
     public void onMessageReceived(MessageEvent messageEvent) {
         //super.onMessageReceived(messageEvent);
         byte[] destBytes;
@@ -225,6 +228,8 @@ public class LandmarkService extends Service implements
         }*/
     }
 
+
+    //sends the kml file to the mobilephone
     private void syncWithMobil() {
         try {
             ParcelFileDescriptor kmlPFD = ParcelFileDescriptor.open(kmlFile.getFile(),
@@ -246,8 +251,9 @@ public class LandmarkService extends Service implements
         mobileConnected = false;
     }
 
+    //determine if a device is connected to the watch
     //this function must not be called from onCreate, onResume, ect.
-    //otherwise the app will be stuck!!!
+    //otherwise the app will get stuck!!!
     public boolean getMobilConnection() {
 
 
@@ -276,6 +282,7 @@ public class LandmarkService extends Service implements
         return mobileConnected;
     }
 
+    //sends a message to the mobile phone which is connected
     public void sendMessage(final String path) {
         new Thread(new Runnable() {
             public void run() {
@@ -290,6 +297,7 @@ public class LandmarkService extends Service implements
         }).start();
     }
 
+    //calculate the orientation relative to the world
     public boolean getAbsOrientation(float[] bearing) {
         float[] orientation = new float[3];
         float[] rotationR = new float[16];
@@ -316,6 +324,7 @@ public class LandmarkService extends Service implements
         return false;
     }
 
+    //save a point to the kml file
     public void savePosition() {
         float[] bearing = new float[1];
         Location location = LocationServices.FusedLocationApi
@@ -396,6 +405,7 @@ public class LandmarkService extends Service implements
     }
 
     @Override
+    //called when a sensor value has changed
     public void onSensorChanged(SensorEvent event) {
         //get the values of the gravity Sensor
         if (event.sensor == gravitySensor) {
@@ -424,6 +434,7 @@ public class LandmarkService extends Service implements
     }
 
     @Override
+    //called when the accuracy of a sensor has changed
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         if(sensor == geoMagneticSensor) {
             if (accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE

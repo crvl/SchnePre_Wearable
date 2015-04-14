@@ -10,7 +10,7 @@
     <string name="button_name">Save GPS Position</string>
     <string name="title_activity_no_gps">NoGPSActivity</string>
     <string name="find_back">Find Back</string>
-    <string name="init_FindBack">Arrow pointing North because the position is not fixed</string>
+    <string name="init_FindBack">Waiting for position fix</string>
     <string name="title_activity_start">Landmark Set</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>

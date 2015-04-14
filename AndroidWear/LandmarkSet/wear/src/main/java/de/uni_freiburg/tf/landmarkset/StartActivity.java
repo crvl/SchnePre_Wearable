@@ -10,7 +10,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-
+//this class is the entery point for the wearable app
+//it shows to buttons to select if someone want to save points or want to find back to a point
 public class StartActivity extends Activity {
     private Button savePosButton;
     private Button findBackButton;
@@ -30,11 +31,13 @@ public class StartActivity extends Activity {
         });
     }
 
+    //Callbackfuncton for the Button "Save Position"
     public void startSavePosition(View view){
         Intent intent = new Intent(this, SavePosition.class);
         startActivity(intent);
     }
 
+    //Callbackfunction for the button "Find Back"
     public void startFindBack(View view){
         Intent intent = new Intent(this, FindBack.class);
         startActivity(intent);

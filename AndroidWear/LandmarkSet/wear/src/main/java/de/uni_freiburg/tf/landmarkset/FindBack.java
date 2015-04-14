@@ -103,6 +103,7 @@ public class FindBack extends Activity implements
 
 
     @Override
+    /*this function will be called when the connection to the mobile phone changes*/
     public void onConnectionChange(boolean connected) {
         if(!hasGPS()) {
             if (connected) {
@@ -121,6 +122,9 @@ public class FindBack extends Activity implements
         }
     }
 
+    @Override
+    //this function is called, when the state of the reliability of a sensor has changed.
+    //in this context it is used to show a information that a recalibration is needed.
     public void onCalibrationChange(boolean calibrated, int accuracy){
         if(calibrated) {
             fragmentTransaction = fragmentManager.beginTransaction();
@@ -134,6 +138,8 @@ public class FindBack extends Activity implements
     }
 
     @Override
+    //the call of this function initialize a recalculation of the direction of the arrow
+    //and of the distance to the destination
     public void onRelativeLocationChange(float dist, float bearingToDestination) {
         float bearing;
         float[] bearingToNorth = new float[1];

@@ -49,14 +49,8 @@ public class KmlCreate {
     public KmlCreate(File dir){
         this(dir, defaultfilename);
     }
-    /*
-    //For this constructor the context of the calling activity must be known
-    //Therefor a method must be searched
-    public KmlCreate(){
-        this(Context.getApplicationContext().getFilesDir(), defaultfilename);
-    }
-    */
 
+    //this function open the kml file and if the file is empty, the skeleton is written to the file
     public void initKmlFile(){
         File tempKml;
         PrintWriter kmlWriter;
@@ -99,6 +93,7 @@ public class KmlCreate {
 
     }
 
+    //this function creates the skeleton of a kml file
     private void initKmlData(PrintWriter writer) {
         writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         writer.println("<kml xmlns=\"http://www.opengis.net/kml/2.2\">");
@@ -121,6 +116,7 @@ public class KmlCreate {
         writer.println("</kml>");
     }
 
+    //this function clear the content of the kml file
     public void resetKmlFile(){
         kmlData.delete();
 
@@ -132,6 +128,7 @@ public class KmlCreate {
         initKmlFile();
     }
 
+    //this function adds a location geiven by location to the kml file
     public void addLocation(Location location){
 
         PrintWriter kmlWriter;
@@ -179,6 +176,7 @@ public class KmlCreate {
         }
     }
 
+    //this function adds a point given by location to the line string, which is specified by lineName
     public void addWayPoint(Location location, String lineName){
         PrintWriter kmlWriter;
         FileReader kmlReader;
@@ -241,6 +239,7 @@ public class KmlCreate {
         }
     }
 
+    //with this function a Placemark String Array is created out of a location
     private String [] createPlacemark (Location location){
         String[] Placemark = new String[20];
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -295,7 +294,7 @@ public class KmlCreate {
         return Placemark;
 
     }
-
+    //function to get the filedescriptor of the kml file
     public File getFile(){
         return kmlData;
     }
