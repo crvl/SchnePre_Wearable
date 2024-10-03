@@ -18,8 +18,8 @@
         <meta-data android:name="com.google.android.maps.v2.API_KEY"
 
 
-                android:value="AIzaSyAz0qj37KQogiQt_qiil4DagaCfzQLHIqY"/>
-        <!--android:value="AIzaSyBW6e-7MTzbZ5vn9uQjOSXTARFZy1ca7ec"/>-->
+                android:value="***************************************"/>
+        <!--android:value="***************************************"/>-->
 
 
         <activity
